@@ -1,6 +1,5 @@
 package wagner.jasper.gpstracker.gpxparser
 
-import android.annotation.SuppressLint
 import wagner.jasper.gpstracker.task.FetchAndParseGPXTask
 import wagner.jasper.gpstracker.task.GpxFetchedAndParsed
 import org.xmlpull.v1.XmlPullParser
@@ -8,17 +7,8 @@ import android.util.Xml
 import org.xmlpull.v1.XmlPullParserException
 import java.io.IOException
 import java.io.InputStream
-import java.awt.font.OpenType.TAG_NAME
 import org.joda.time.format.ISODateTimeFormat
 import org.joda.time.DateTime
-import java.awt.font.OpenType.TAG_NAME
-import android.media.ExifInterface.TAG_COPYRIGHT
-import jdk.nashorn.internal.objects.NativeDate.setYear
-import android.provider.ContactsContract.CommonDataKinds.Email
-
-
-
-
 
 
 class GPXParser {
@@ -43,9 +33,9 @@ class GPXParser {
 
     @Throws(XmlPullParserException::class, IOException::class)
     private fun readGpx(parser: XmlPullParser): Gpx {
-        val wayPoints = ArrayList()
-        val tracks = ArrayList()
-        val routes = ArrayList()
+        val wayPoints = ArrayList<WayPoint>()
+        val tracks = ArrayList<Track>()
+        val routes = ArrayList<Route>()
 
         parser.require(XmlPullParser.START_TAG, namespace, TAG_GPX)
 
@@ -81,7 +71,7 @@ class GPXParser {
     private fun readTrack(parser: XmlPullParser): Track {
         val trackBuilder = Track.Builder()
 
-        val segments = ArrayList()
+        val segments = ArrayList<TrackSegment>()
         parser.require(XmlPullParser.START_TAG, namespace, TAG_TRACK)
         while (loopMustContinue(parser.next())) {
             if (parser.eventType != XmlPullParser.START_TAG) {
@@ -148,7 +138,7 @@ class GPXParser {
     // Processes summary tags in the feed.
     @Throws(IOException::class, XmlPullParserException::class)
     private fun readSegment(parser: XmlPullParser): TrackSegment {
-        val points = ArrayList()
+        val points = ArrayList<TrackPoint>()
         parser.require(XmlPullParser.START_TAG, namespace, TAG_SEGMENT)
         while (loopMustContinue(parser.next())) {
             if (parser.eventType != XmlPullParser.START_TAG) {
@@ -169,7 +159,7 @@ class GPXParser {
 
     @Throws(IOException::class, XmlPullParserException::class)
     private fun readRoute(parser: XmlPullParser): Route {
-        val points = ArrayList()
+        val points = ArrayList<RoutePoint>()
         parser.require(XmlPullParser.START_TAG, namespace, TAG_ROUTE)
         val routeBuilder = Route.Builder()
 
@@ -383,6 +373,8 @@ class GPXParser {
         return result
     }
 
+
+
     @Throws(IOException::class, XmlPullParserException::class, NumberFormatException::class)
     private fun readNumber(parser: XmlPullParser): Int? {
         parser.require(XmlPullParser.START_TAG, namespace, TAG_NUMBER)
@@ -427,41 +419,41 @@ class GPXParser {
 
 
     companion object {
-        const val TAG_GPX = "gpx";
-        const val TAG_VERSION = "version";
-        const val TAG_CREATOR = "creator";
-        const val TAG_METADATA = "metadata";
-        const val TAG_TRACK = "trk";
-        const val TAG_SEGMENT = "trkseg";
-        const val TAG_TRACK_POINT = "trkpt";
-        const val TAG_LAT = "lat";
-        const val TAG_LON = "lon";
-        const val TAG_ELEVATION = "ele";
-        const val TAG_TIME = "time";
-        const val TAG_WAY_POINT = "wpt";
-        const val TAG_ROUTE = "rte";
-        const val TAG_ROUTE_POINT = "rtept";
-        const val TAG_NAME = "name";
-        const val TAG_DESC = "desc";
-        const val TAG_CMT = "cmt";
-        const val TAG_SRC = "src";
-        const val TAG_LINK = "link";
-        const val TAG_NUMBER = "number";
-        const val TAG_TYPE = "type";
-        const val TAG_TEXT = "text";
-        const val TAG_AUTHOR = "author";
-        const val TAG_COPYRIGHT = "copyright";
-        const val TAG_KEYWORDS = "keywords";
-        const val TAG_BOUNDS = "bounds";
-        const val TAG_EXTENSIONS = "extensions";
-        const val TAG_MIN_LAT = "minlat";
-        const val TAG_MIN_LON = "minlon";
-        const val TAG_MAX_LAT = "maxlat";
-        const val TAG_MAX_LON = "maxlon";
-        const val TAG_HREF = "href";
-        const val TAG_YEAR = "year";
-        const val TAG_LICENSE = "license";
-        const val TAG_EMAIL = "email";
+        const val TAG_GPX = "gpx"
+        const val TAG_VERSION = "version"
+        const val TAG_CREATOR = "creator"
+        const val TAG_METADATA = "metadata"
+        const val TAG_TRACK = "trk"
+        const val TAG_SEGMENT = "trkseg"
+        const val TAG_TRACK_POINT = "trkpt"
+        const val TAG_LAT = "lat"
+        const val TAG_LON = "lon"
+        const val TAG_ELEVATION = "ele"
+        const val TAG_TIME = "time"
+        const val TAG_WAY_POINT = "wpt"
+        const val TAG_ROUTE = "rte"
+        const val TAG_ROUTE_POINT = "rtept"
+        const val TAG_NAME = "name"
+        const val TAG_DESC = "desc"
+        const val TAG_CMT = "cmt"
+        const val TAG_SRC = "src"
+        const val TAG_LINK = "link"
+        const val TAG_NUMBER = "number"
+        const val TAG_TYPE = "type"
+        const val TAG_TEXT = "text"
+        const val TAG_AUTHOR = "author"
+        const val TAG_COPYRIGHT = "copyright"
+        const val TAG_KEYWORDS = "keywords"
+        const val TAG_BOUNDS = "bounds"
+        const val TAG_EXTENSIONS = "extensions"
+        const val TAG_MIN_LAT = "minlat"
+        const val TAG_MIN_LON = "minlon"
+        const val TAG_MAX_LAT = "maxlat"
+        const val TAG_MAX_LON = "maxlon"
+        const val TAG_HREF = "href"
+        const val TAG_YEAR = "year"
+        const val TAG_LICENSE = "license"
+        const val TAG_EMAIL = "email"
         const val TAG_ID = "id"
         const val TAG_DOMAIN = "domain"
 

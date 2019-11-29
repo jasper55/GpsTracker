@@ -15,7 +15,7 @@ class TrackSegment private constructor(builder: Builder) {
     class Builder {
         internal var mTrackPoints: List<TrackPoint>? = null
 
-        fun setTrackPoints(trackPoints: List<TrackPoint>): Builder {
+        fun setTrackPoints(trackPoints: ArrayList<TrackPoint>): Builder {
             mTrackPoints = trackPoints
             return this
         }

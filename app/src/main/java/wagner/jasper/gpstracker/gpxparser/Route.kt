@@ -35,7 +35,7 @@ class Route private constructor(builder: Builder) {
         internal var mRouteLink: Link? = null
         internal var mRouteType: String? = null
 
-        fun setRoutePoints(routePoints: List<RoutePoint>): Builder {
+        fun setRoutePoints(routePoints: ArrayList<RoutePoint>): Builder {
             mRoutePoints = routePoints
             return this
         }
