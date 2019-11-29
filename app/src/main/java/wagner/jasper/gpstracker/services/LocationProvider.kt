@@ -175,6 +175,7 @@ class LocationProvider : Service(), GoogleApiClient.ConnectionCallbacks,
         intent.putExtra(KEY_SPEED, getSpeed)
         intent.putExtra(KEY_ACCURACY, getGPSAccuracy)
         intent.putExtra(KEY_ALTITUDE, getAltitude)
+        intent.putExtra(KEY_LOCATION, newLocation)
         //intent.putExtra(LocationProvider.KEY_CURRENT_TIME, currentTime)
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
     }
@@ -304,6 +305,7 @@ class LocationProvider : Service(), GoogleApiClient.ConnectionCallbacks,
         const val KEY_SET_REQUEST_INTERVAL = "KEY_SET_REQUEST_INTERVAL"
         const val KEY_ACCURACY = "KEY_ACCURACY"
         const val KEY_ALTITUDE = "KEY_ALTITUDE"
+        const val KEY_LOCATION = "KEY_LOCATION"
 
         const val VALUE_MISSING = "--"
     }

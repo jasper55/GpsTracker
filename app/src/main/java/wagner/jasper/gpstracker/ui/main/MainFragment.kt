@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.location.Location
 import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.view.Gravity
@@ -16,10 +17,10 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.lifecycle.Observer
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import kotlinx.android.synthetic.main.main_fragment.*
 import wagner.jasper.gpstracker.extensions.show
 import wagner.jasper.gpstracker.R
 import wagner.jasper.gpstracker.services.LocationProvider
+import java.util.*
 
 class MainFragment : Fragment() {
 
@@ -35,6 +36,8 @@ class MainFragment : Fragment() {
     private var tvSpeed: TextView? = null
     private var tvHeading: TextView? = null
     private var tvAltitude: TextView? = null
+    private var fileName: String = ""
+    private var fileNameNumber = 0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -91,6 +94,38 @@ class MainFragment : Fragment() {
                 customToast.show(context, "GPS Provider disabled", Gravity.BOTTOM, Toast.LENGTH_SHORT)
             }
         }
+
+        switchTracking!!.setOnCheckedChangeListener { buttonView, isChecked ->
+            if (isChecked) {
+                viewModel.startTracking()
+                fileName="${getDate()}_$fileNameNumber"
+                customToast.show(context, "Tracking started", Gravity.BOTTOM, Toast.LENGTH_SHORT)
+            } else {
+                viewModel.saveRoute(fileName,getTime())
+                fileNameNumber=+1
+                customToast.show(context, "Tracking stopped", Gravity.BOTTOM, Toast.LENGTH_SHORT)
+            }
+        }
+    }
+
+    private fun getDate(): String {
+        val calender = Calendar.getInstance()
+
+        val day = calender.get(Calendar.DAY_OF_MONTH)
+        val month = calender.get(Calendar.MONTH)
+        val year = calender.get(Calendar.YEAR)
+        return "$day-$month-$year"
+    }
+
+    private fun getTime(): String {
+        val calender = Calendar.getInstance()
+
+        val day = calender.get(Calendar.DAY_OF_MONTH)
+        val month = calender.get(Calendar.MONTH)
+        val year = calender.get(Calendar.YEAR)
+        val hour = calender.get(Calendar.HOUR)
+        val minute = calender.get(Calendar.MINUTE)
+        return "$day-$month-$year $hour:$minute"
     }
 
     private fun initBroadcastReceiver() {
@@ -102,10 +137,10 @@ class MainFragment : Fragment() {
                 val accuracy = intent.getStringExtra(LocationProvider.KEY_ACCURACY)
                 val elapsedTime = intent.getDoubleExtra(LocationProvider.KEY_TIME, 0.0)
                 val altitude = intent.getStringExtra(LocationProvider.KEY_ALTITUDE)
-
-
+                val location = intent.getParcelableExtra<Location>(LocationProvider.KEY_LOCATION)
 
                 viewModel.updateUI(speed,heading,altitude,accuracy)
+                viewModel.addToList(location)
             }
         }
         val filter = IntentFilter(LocationProvider.BR_NEW_LOCATION)
