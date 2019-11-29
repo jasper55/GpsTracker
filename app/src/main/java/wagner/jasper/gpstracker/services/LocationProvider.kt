@@ -5,6 +5,7 @@ import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.Criteria
 import android.location.Location
@@ -83,7 +84,7 @@ class LocationProvider : Service(), GoogleApiClient.ConnectionCallbacks,
         mLocationCallback = LocationCallback()
         mFusedLocationProviderClient = FusedLocationProviderClient(applicationContext)
         createLocationRequest()
-        initBroadcastReceiver()
+        initSettingsUpdatedReceiver()
     }
 
 
@@ -109,6 +110,7 @@ class LocationProvider : Service(), GoogleApiClient.ConnectionCallbacks,
         mLocationRequest = LocationRequest.create()
         mLocationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         mLocationRequest.interval = lastTimeInterval
+        mLocationRequest.fastestInterval = fastestTimeInterval
         mLocationRequest.smallestDisplacement = lastDisplacement
 
         requestLocationUpdate()
@@ -117,7 +119,6 @@ class LocationProvider : Service(), GoogleApiClient.ConnectionCallbacks,
     private fun updateSettings(newDisplacement: Float, newTimeInterval: Long) {
         mLocationRequest.interval = newTimeInterval
         mLocationRequest.smallestDisplacement = newDisplacement
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
         requestLocationUpdate()
     }
 
@@ -136,7 +137,6 @@ class LocationProvider : Service(), GoogleApiClient.ConnectionCallbacks,
             if (task.isSuccessful) {
                 prevLocation = newLocation
                 newLocation = task.result
-
             } else {
                 return@addOnCompleteListener//get the last location of the device
             }
@@ -259,7 +259,7 @@ class LocationProvider : Service(), GoogleApiClient.ConnectionCallbacks,
             return altitude
         }
 
-    private fun initBroadcastReceiver() {
+    private fun initSettingsUpdatedReceiver() {
         settingsBroadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(contxt: Context?, intent: Intent?) {
                 val newDisplacement =
@@ -270,6 +270,8 @@ class LocationProvider : Service(), GoogleApiClient.ConnectionCallbacks,
                 updateSettings(newDisplacement, newTimeInterval)
             }
         }
+        val filter = IntentFilter(BR_NEW_SETTING)
+        applicationContext.registerReceiver(settingsBroadcastReceiver,filter)
     }
 
     override fun onDestroy() {
@@ -285,6 +287,7 @@ class LocationProvider : Service(), GoogleApiClient.ConnectionCallbacks,
         const val VALUES_BEFORE_UI_UPDATE = 8
         private val DEFAULT_LOCATION_REQUEST_INTERVAL: Long = 100
         private val DEFAULT_LOCATION_REQUEST_DISPLACEMENT = 0.2f
+        private const val fastestTimeInterval = 10L
         //val CHANNEL_ID = BuildConfig.APPLICATION_ID.concat("_notification_id")
         //val CHANNEL_NAME = BuildConfig.APPLICATION_ID.concat("_notification_name")
         val NOTIFICATION_ID = 100
