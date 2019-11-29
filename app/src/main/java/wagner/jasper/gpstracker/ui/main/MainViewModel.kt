@@ -54,9 +54,15 @@ class MainViewModel(
     }
 
     fun addToList(location: Location){
+        if(_locationList.value!!.isNullOrEmpty()){
+            _locationList.value = ArrayList()
+        }
         _locationList.value!!.add(location)
     }
 
+    fun saveLocationList(locationList: ArrayList<Location>) {
+        _locationList.value = locationList
+    }
 
     fun startTracking() {
         _locationList.value = ArrayList()
@@ -86,7 +92,5 @@ class MainViewModel(
         }
 
     }
-
-
 
 }

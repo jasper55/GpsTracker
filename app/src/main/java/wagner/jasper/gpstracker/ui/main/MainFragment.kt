@@ -21,6 +21,7 @@ import wagner.jasper.gpstracker.extensions.show
 import wagner.jasper.gpstracker.R
 import wagner.jasper.gpstracker.services.LocationProvider
 import java.util.*
+import kotlin.collections.ArrayList
 
 class MainFragment : Fragment() {
 
@@ -38,6 +39,7 @@ class MainFragment : Fragment() {
     private var tvAltitude: TextView? = null
     private var fileName: String = ""
     private var fileNameNumber = 0
+    private var locationList = ArrayList<Location>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -97,10 +99,12 @@ class MainFragment : Fragment() {
 
         switchTracking!!.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked) {
-                viewModel.startTracking()
+                locationList = ArrayList<Location>()
+                //viewModel.startTracking()
                 fileName="${getDate()}_$fileNameNumber"
                 customToast.show(context, "Tracking started", Gravity.BOTTOM, Toast.LENGTH_SHORT)
             } else {
+                viewModel.saveLocationList(locationList)
                 viewModel.saveRoute(fileName,getTime())
                 fileNameNumber=+1
                 customToast.show(context, "Tracking stopped", Gravity.BOTTOM, Toast.LENGTH_SHORT)
@@ -140,7 +144,8 @@ class MainFragment : Fragment() {
                 val location = intent.getParcelableExtra<Location>(LocationProvider.KEY_LOCATION)
 
                 viewModel.updateUI(speed,heading,altitude,accuracy)
-                viewModel.addToList(location)
+                //viewModel.addToList(location)
+                locationList.add(location)
             }
         }
         val filter = IntentFilter(LocationProvider.BR_NEW_LOCATION)
