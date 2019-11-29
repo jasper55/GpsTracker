@@ -104,9 +104,12 @@ class MainFragment : Fragment() {
                 val altitude = intent.getStringExtra(LocationProvider.KEY_ALTITUDE)
 
 
+
                 viewModel.updateUI(speed,heading,altitude,accuracy)
             }
         }
+        val filter = IntentFilter(LocationProvider.BR_NEW_LOCATION)
+        context!!.registerReceiver(locationBroadcastReceiver,filter)
     }
 
 }
