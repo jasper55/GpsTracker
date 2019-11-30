@@ -39,19 +39,33 @@ class GpxFile(val context: Context) {
         val stockList = ArrayList<String>()
 
 
-        for (i in 0 until points.size-1) {
+        for (i in 0 until (points.size - 1)) {
 
-            stockList.add(
-                "   <trkpt lat=\"" + points[i].latitude + "\" lon=\"" + points[i].longitude + "\">\n" +
-                        "    <acc>" + points[i].accuracy + "</acc>\n" +
-                        "    <bear>" + points[i].bearing + "</bear>\n" +
-                        "    <bear>" + points[i].speed + "</bear>\n" +
-                        "    <timeElapsed>" + points[i].elapsedRealtimeNanos + "</timeElapsed>\n" +
-                        "    <provider>" + points[i].provider + "</provider>\n" +
-                        "    <distance>" + points[i].distanceTo(points[i - 1]) + "</distance>\n" +
-                        "    <ele>" + points[i].altitude + "</ele>\n" +
-                        "    <time>" + df.format(Date()) + "Z</time>\n   </trkpt>\n"
-            )
+            if (i == 0) {
+                stockList.add(
+                    "   <trkpt lat=\"" + points[i].latitude + "\" lon=\"" + points[i].longitude + "\">\n" +
+                            "    <acc>" + points[i].accuracy + "</acc>\n" +
+                            "    <bear>" + points[i].bearing + "</bear>\n" +
+                            "    <bear>" + points[i].speed + "</bear>\n" +
+                            "    <timeElapsed>" + points[i].elapsedRealtimeNanos + "</timeElapsed>\n" +
+                            "    <provider>" + points[i].provider + "</provider>\n" +
+                            "    <distance>" + 0 + "</distance>\n" +
+                            "    <ele>" + points[i].altitude + "</ele>\n" +
+                            "    <time>" + df.format(Date()) + "Z</time>\n   </trkpt>\n"
+                )
+            } else {
+                stockList.add(
+                    "   <trkpt lat=\"" + points[i].latitude + "\" lon=\"" + points[i].longitude + "\">\n" +
+                            "    <acc>" + points[i].accuracy + "</acc>\n" +
+                            "    <bear>" + points[i].bearing + "</bear>\n" +
+                            "    <bear>" + points[i].speed + "</bear>\n" +
+                            "    <timeElapsed>" + points[i].elapsedRealtimeNanos + "</timeElapsed>\n" +
+                            "    <provider>" + points[i].provider + "</provider>\n" +
+                            "    <distance>" + points[i].distanceTo(points[i - 1]) + "</distance>\n" +
+                            "    <ele>" + points[i].altitude + "</ele>\n" +
+                            "    <time>" + df.format(Date()) + "Z</time>\n   </trkpt>\n"
+                )
+            }
         }
 
         segments += stockList
@@ -79,7 +93,12 @@ class GpxFile(val context: Context) {
         } catch (e: IOException) {
             Log.e(TAG, "Error Writing Path", e)
             val customToast = Toast(context)
-            customToast.show(context, "Error while saving data: $e", Gravity.RELATIVE_HORIZONTAL_GRAVITY_MASK, Toast.LENGTH_SHORT)
+            customToast.show(
+                context,
+                "Error while saving data: $e",
+                Gravity.RELATIVE_HORIZONTAL_GRAVITY_MASK,
+                Toast.LENGTH_SHORT
+            )
         }
     }
 

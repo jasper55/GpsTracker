@@ -1,5 +1,6 @@
 package wagner.jasper.gpstracker.ui.main
 
+import android.app.Activity
 import android.app.Application
 import android.content.Intent
 import android.location.Location
@@ -21,7 +22,7 @@ class MainViewModel(
     application: Application
 ) : AndroidViewModel(application) {
 
-    private val context = getApplication<Application>().baseContext
+    //private val context = getApplication<Application>().baseContext
     private val _gpsAccuracy = MutableLiveData<String>()
     val gpsAccuracy: LiveData<String>
         get() = _gpsAccuracy
@@ -43,11 +44,11 @@ class MainViewModel(
         get() = _altitude
 
 
-    fun enableGPS() {
+    fun enableGPS(context: Activity) {
         context.startService(Intent(context, LocationProvider::class.java))
     }
 
-    fun disableGPS() {
+    fun disableGPS(context: Activity) {
         context.stopService(Intent(context, LocationProvider::class.java))
     }
 
@@ -74,13 +75,14 @@ class MainViewModel(
         _locationList.value = ArrayList()
     }
 
-    fun saveRoute(filename: String, time: String) {
+    fun saveRoute(context: Activity,filename: String, time: String) {
 
         Log.i(TAG, "trying to save file $filename.gpx ...")
 
-        val file = File(context.filesDir, "data/$filename.gpx")
+        val file = File(context.filesDir, "$filename.gpx")
         if (!file.exists()) {
-            file.mkdir()
+            val directory = context.filesDir
+            directory.mkdir()
         }
         //routeFile = new File(getFilesDir(), FILENAME);
         //val root = Environment.getExternalStorageState().toString()
@@ -92,7 +94,7 @@ class MainViewModel(
 
         val gpxFile = GpxFile(context)
         try {
-            file.createNewFile()
+            //file.createNewFile()
             gpxFile.writePath(file, name, time, locationList.value!!)
 
             Log.i(TAG, "File ${file.name} successfully saved")

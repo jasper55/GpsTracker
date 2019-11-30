@@ -94,10 +94,10 @@ class MainFragment : Fragment() {
         val customToast = Toast(context)
         switchProvider!!.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked) {
-                viewModel.enableGPS()
+                viewModel.enableGPS(activity!!)
                 customToast.show(context, "GPS Provider enabled", Gravity.BOTTOM, Toast.LENGTH_SHORT)
             } else {
-                viewModel.disableGPS()
+                viewModel.disableGPS(activity!!)
                 customToast.show(context, "GPS Provider disabled", Gravity.BOTTOM, Toast.LENGTH_SHORT)
             }
         }
@@ -110,7 +110,7 @@ class MainFragment : Fragment() {
                 customToast.show(context, "Tracking started", Gravity.BOTTOM, Toast.LENGTH_SHORT)
             } else {
                 viewModel.saveLocationList(locationList)
-                viewModel.saveRoute(fileName,getTime())
+                viewModel.saveRoute(activity!!,fileName,getTime())
                 fileNameNumber=+1
                 customToast.show(context, "Tracking stopped", Gravity.BOTTOM, Toast.LENGTH_SHORT)
             }
