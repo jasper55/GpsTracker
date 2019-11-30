@@ -78,6 +78,11 @@ class MainFragment : Fragment() {
         observeLiveDataChanges()
     }
 
+    override fun onStop(){
+        super.onStop()
+        context!!.unregisterReceiver(locationBroadcastReceiver)
+    }
+
     private fun initializeView(view: View) {
         tvAccuracy = view.findViewById(R.id.tvAccuracy)
         tvSpeed = view.findViewById(R.id.tvSpeed)

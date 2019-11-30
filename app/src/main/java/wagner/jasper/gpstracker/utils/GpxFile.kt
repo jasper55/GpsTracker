@@ -69,11 +69,12 @@ class GpxFile(val context: Context) {
             writer.append(name)
             writer.append(segments)
             writer.append(footer)
-            writer.encoding
+            val fileEncoding = writer.encoding
             writer.flush()
             writer.close()
 
             Log.i(TAG, "Saved " + points.size + " points.")
+            Log.i(TAG, "Saved $fileEncoding .")
 
         } catch (e: IOException) {
             Log.e(TAG, "Error Writing Path", e)

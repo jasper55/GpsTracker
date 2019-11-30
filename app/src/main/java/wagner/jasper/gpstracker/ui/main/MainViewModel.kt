@@ -21,7 +21,7 @@ class MainViewModel(
     application: Application
 ) : AndroidViewModel(application) {
 
-    private val context = getApplication<Application>().applicationContext
+    private val context = getApplication<Application>().baseContext
     private val _gpsAccuracy = MutableLiveData<String>()
     val gpsAccuracy: LiveData<String>
         get() = _gpsAccuracy
@@ -41,6 +41,7 @@ class MainViewModel(
     private val _altitude = MutableLiveData<String>()
     val altitude: LiveData<String>
         get() = _altitude
+
 
     fun enableGPS() {
         context.startService(Intent(context, LocationProvider::class.java))
