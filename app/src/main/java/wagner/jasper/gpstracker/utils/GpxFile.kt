@@ -46,7 +46,7 @@ class GpxFile(val context: Context) {
                     "   <trkpt lat=\"" + points[i].latitude + "\" lon=\"" + points[i].longitude + "\">\n" +
                             "    <acc>" + points[i].accuracy + "</acc>\n" +
                             "    <bear>" + points[i].bearing + "</bear>\n" +
-                            "    <bear>" + points[i].speed + "</bear>\n" +
+                            "    <speed>" + points[i].speed + "</speed>\n" +
                             "    <timeElapsed>" + points[i].elapsedRealtimeNanos + "</timeElapsed>\n" +
                             "    <provider>" + points[i].provider + "</provider>\n" +
                             "    <distance>" + 0 + "</distance>\n" +
@@ -58,7 +58,7 @@ class GpxFile(val context: Context) {
                     "   <trkpt lat=\"" + points[i].latitude + "\" lon=\"" + points[i].longitude + "\">\n" +
                             "    <acc>" + points[i].accuracy + "</acc>\n" +
                             "    <bear>" + points[i].bearing + "</bear>\n" +
-                            "    <bear>" + points[i].speed + "</bear>\n" +
+                            "    <speed>" + points[i].speed + "</speed>\n" +
                             "    <timeElapsed>" + points[i].elapsedRealtimeNanos + "</timeElapsed>\n" +
                             "    <provider>" + points[i].provider + "</provider>\n" +
                             "    <distance>" + points[i].distanceTo(points[i - 1]) + "</distance>\n" +

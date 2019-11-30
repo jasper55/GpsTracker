@@ -78,8 +78,8 @@ class MainFragment : Fragment() {
         observeLiveDataChanges()
     }
 
-    override fun onStop(){
-        super.onStop()
+    override fun onDestroy() {
+        super.onDestroy()
         context!!.unregisterReceiver(locationBroadcastReceiver)
     }
 
