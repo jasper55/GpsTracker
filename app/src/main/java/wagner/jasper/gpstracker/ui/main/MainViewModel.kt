@@ -9,8 +9,12 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import wagner.jasper.gpstracker.services.LocationProvider
-import wagner.jasper.gpstracker.utils.SaveGpx
+import wagner.jasper.gpstracker.utils.GpxFile
 import java.io.File
+import androidx.core.content.ContextCompat.getExternalFilesDirs
+import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+
+
 
 
 class MainViewModel(
@@ -62,6 +66,7 @@ class MainViewModel(
 
     fun saveLocationList(locationList: ArrayList<Location>) {
         _locationList.value = locationList
+        Log.i("MainViewModel", "LocationList Saved ")
     }
 
     fun startTracking() {
@@ -70,27 +75,33 @@ class MainViewModel(
 
     fun saveRoute(filename: String, time: String) {
 
-// routeFile = new File(getFilesDir(), FILENAME);
+        Log.i(TAG, "trying to save file $filename.gpx ...")
 
+        val file = File(context.filesDir, "data/$filename.gpx")
+        if (!file.exists()) {
+            file.mkdir()
+        }
+        //routeFile = new File(getFilesDir(), FILENAME);
+        //val root = Environment.getExternalStorageState().toString()
+        //val myDir = File("$root/gps")
+        //myDir.mkdirs()
 
-        val root = Environment.getExternalStorageState().toString()
-        val myDir = File("$root/gps")
-        myDir.mkdirs()
-
-        val file = File(myDir, "$filename.gpx")
+        //val file = File(myDir, "$filename.gpx")
         val name = "Jasper Wagner"
 
-        val gpxFile = SaveGpx(context)
+        val gpxFile = GpxFile(context)
         try {
             file.createNewFile()
             gpxFile.writePath(file, name, time, locationList.value!!)
 
-            //   Log.i(TAG, "Route Saved " + file.getName());
-
+            Log.i(TAG, "File ${file.name} successfully saved")
         } catch (e: Exception) {
-            Log.e("WritingFile", "Not completed writing" + file.name)
+            Log.e(TAG, "Not completed saving file: " + file.name + " " + e)
         }
+    }
 
+    companion object {
+        private val TAG = MainViewModel::class.java.name
     }
 
 }

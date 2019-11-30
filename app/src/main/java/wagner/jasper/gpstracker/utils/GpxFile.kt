@@ -15,7 +15,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 
-class SaveGpx(val application: Context) {
+class GpxFile(val context: Context) {
 
 
     /**
@@ -39,7 +39,7 @@ class SaveGpx(val application: Context) {
         val stockList = ArrayList<String>()
 
 
-        for (i in 0 until points.size) {
+        for (i in 0 until points.size-1) {
 
             stockList.add(
                 "   <trkpt lat=\"" + points[i].latitude + "\" lon=\"" + points[i].longitude + "\">\n" +
@@ -69,21 +69,22 @@ class SaveGpx(val application: Context) {
             writer.append(name)
             writer.append(segments)
             writer.append(footer)
+            writer.encoding
             writer.flush()
             writer.close()
 
             Log.i(TAG, "Saved " + points.size + " points.")
 
         } catch (e: IOException) {
-            Log.e(TAG, "Error Writting Path", e)
-            val customToast = Toast(application)
-            customToast.show(application, "Error while saving data: $e", Gravity.RELATIVE_HORIZONTAL_GRAVITY_MASK, Toast.LENGTH_SHORT)
+            Log.e(TAG, "Error Writing Path", e)
+            val customToast = Toast(context)
+            customToast.show(context, "Error while saving data: $e", Gravity.RELATIVE_HORIZONTAL_GRAVITY_MASK, Toast.LENGTH_SHORT)
         }
     }
 
 
     companion object {
-        private val TAG = SaveGpx::class.java.name
+        private val TAG = GpxFile::class.java.name
     }
 
 
