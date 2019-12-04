@@ -25,7 +25,7 @@ class GpxFile(val context: Context) {
      * @param n name for the file
      * @param points List of locations to be written to gpx format
      */
-    fun writePath(file: File, name: String, time: String, points: ArrayList<Location>) {
+    fun createFile(file: File, name: String, time: String, points: ArrayList<Location>) {
         val header =
             "<gpx creator=\"GPS Tracker\" version=\"1.1\" xmlns=\"http://www.topografix.com/GPX/1/1\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"  xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd\">\n"
         val metadata =
@@ -44,14 +44,15 @@ class GpxFile(val context: Context) {
             if (i == 0) {
                 stockList.add(
                     "   <trkpt lat=\"" + points[i].latitude + "\" lon=\"" + points[i].longitude + "\">\n" +
-                            "    <acc>" + points[i].accuracy + "</acc>\n" +
-                            "    <bear>" + points[i].bearing + "</bear>\n" +
+                            "    <accuracy>" + points[i].accuracy + "</accuracy>\n" +
+                            "    <bearing>" + points[i].bearing + "</bearing>\n" +
                             "    <speed>" + points[i].speed + "</speed>\n" +
                             "    <timeElapsed>" + points[i].elapsedRealtimeNanos + "</timeElapsed>\n" +
                             "    <provider>" + points[i].provider + "</provider>\n" +
                             "    <distance>" + 0 + "</distance>\n" +
-                            "    <ele>" + points[i].altitude + "</ele>\n" +
-                            "    <time>" + df.format(Date()) + "Z</time>\n   </trkpt>\n"
+                            "    <elevation>" + points[i].altitude + "</elevation>\n" +
+                            "    <time>" + df.format(Date()) + "Z</time>\n   " +
+                            "</trkpt>\n"
                 )
             } else {
                 stockList.add(

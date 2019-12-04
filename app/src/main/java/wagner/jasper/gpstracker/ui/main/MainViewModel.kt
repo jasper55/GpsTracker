@@ -4,7 +4,6 @@ import android.app.Activity
 import android.app.Application
 import android.content.Intent
 import android.location.Location
-import android.os.Environment
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -12,10 +11,7 @@ import androidx.lifecycle.MutableLiveData
 import wagner.jasper.gpstracker.services.LocationProvider
 import wagner.jasper.gpstracker.utils.GpxFile
 import java.io.File
-import androidx.core.content.ContextCompat.getExternalFilesDirs
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
-
-
+import wagner.jasper.gpstracker.R
 
 
 class MainViewModel(
@@ -75,7 +71,7 @@ class MainViewModel(
         _locationList.value = ArrayList()
     }
 
-    fun saveRoute(context: Activity,filename: String, time: String) {
+    fun saveTracking(context: Activity, filename: String, time: String) {
 
         Log.i(TAG, "trying to save file $filename.gpx ...")
 
@@ -84,19 +80,11 @@ class MainViewModel(
             val directory = context.filesDir
             directory.mkdir()
         }
-        //routeFile = new File(getFilesDir(), FILENAME);
-        //val root = Environment.getExternalStorageState().toString()
-        //val myDir = File("$root/gps")
-        //myDir.mkdirs()
-
-        //val file = File(myDir, "$filename.gpx")
-        val name = "Jasper Wagner"
+        val author = context.getString(R.string.AUTHOR)
 
         val gpxFile = GpxFile(context)
         try {
-            //file.createNewFile()
-            gpxFile.writePath(file, name, time, locationList.value!!)
-
+            gpxFile.createFile(file, author, time, locationList.value!!)
             Log.i(TAG, "File ${file.name} successfully saved")
         } catch (e: Exception) {
             Log.e(TAG, "Not completed saving file: " + file.name + " " + e)

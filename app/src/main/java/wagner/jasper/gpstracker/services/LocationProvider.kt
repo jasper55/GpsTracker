@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.Criteria
+import android.location.GpsStatus
 import android.location.Location
 import android.os.Binder
 import android.os.Bundle
@@ -26,15 +27,18 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationResult
 import android.location.LocationManager
+import wagner.jasper.gpstracker.utils.GpxFile
 import wagner.jasper.gpstracker.utils.Utils.round
 
 
-class LocationProvider : Service(), GoogleApiClient.ConnectionCallbacks,
-    GoogleApiClient.OnConnectionFailedListener {
+class LocationProvider : Service(),
+    GoogleApiClient.ConnectionCallbacks,
+    GoogleApiClient.OnConnectionFailedListener
+{
 
     private lateinit var mGoogleApiClient: GoogleApiClient
     private lateinit var mFusedLocationProviderClient: FusedLocationProviderClient
-    lateinit var mLocationRequest: LocationRequest
+    private lateinit var mLocationRequest: LocationRequest
     private lateinit var mLocationCallback: LocationCallback
     private lateinit var settingsBroadcastReceiver: BroadcastReceiver
 
@@ -156,7 +160,7 @@ class LocationProvider : Service(), GoogleApiClient.ConnectionCallbacks,
     private fun onLocationChanged(lastLocation: Location?) {
         if (newLocation == null) {
             newLocation = lastLocation
-        } else if (prevLocation != newLocation) {
+        } else if (prevLocation?.elapsedRealtimeNanos != newLocation?.elapsedRealtimeNanos) {
             previousTime = currentTime
             currentTime = System.currentTimeMillis()
             prevLocation = newLocation
