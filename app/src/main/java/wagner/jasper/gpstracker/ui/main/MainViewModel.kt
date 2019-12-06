@@ -63,6 +63,7 @@ class MainViewModel(
     fun updateUI(speed: String?, heading: String?, altitude: String?,
                  accuracy: String?, elapsedTime: String?,
                  distanceCurrentRun: String? , providerSource: String?) {
+
         _gpsAccuracy.value = accuracy
         _speed.value = speed
         _heading.value = heading

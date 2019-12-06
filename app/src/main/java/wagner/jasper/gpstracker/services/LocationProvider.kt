@@ -190,17 +190,6 @@ class LocationProvider : Service(),
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
     }
 
-    private val getGPSAccuracy: String
-        get() {
-            var acc = VALUE_MISSING
-            newLocation?.let {
-                if (it.hasAccuracy()) {
-                    acc = it.accuracy.toString()
-                }
-            }
-            return acc
-        }
-
     private fun removeLocationUpdate() {
         mFusedLocationProviderClient.removeLocationUpdates(mLocationCallback)
     }
@@ -225,6 +214,17 @@ class LocationProvider : Service(),
             //locationManager.requestLocationUpdates(DEFAULT_LOCATION_REQUEST_INTERVAL, DEFAULT_LOCATION_REQUEST_DISPLACEMENT, criteria,mFusedLocationProviderClient)
         }
     }
+
+    private val getGPSAccuracy: String
+        get() {
+            var acc = VALUE_MISSING
+            newLocation?.let {
+                if (it.hasAccuracy()) {
+                    acc = round(it.accuracy.toDouble(),1).toString()
+                }
+            }
+            return acc
+        }
 
     private val getSpeed: String
         get() {
@@ -255,7 +255,7 @@ class LocationProvider : Service(),
                 if (bear < 0) {
                     bear = 270 - (bear + 90)
                 }
-                bearing = bear.toString()
+                bearing = bear.toInt().toString()
             }
             return bearing
         }
@@ -265,7 +265,7 @@ class LocationProvider : Service(),
             var altitude = VALUE_MISSING
             newLocation?.let {
                 if (it.hasAltitude())
-                    altitude = it.altitude.toString()
+                    altitude = round(it.altitude,1).toString()
             }
             return altitude
         }
