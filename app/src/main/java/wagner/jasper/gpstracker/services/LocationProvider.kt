@@ -27,6 +27,7 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationResult
 import android.location.LocationManager
+import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
 import wagner.jasper.gpstracker.utils.GpxFile
 import wagner.jasper.gpstracker.utils.Utils.round
 
@@ -41,11 +42,13 @@ class LocationProvider : Service(),
     private lateinit var mLocationRequest: LocationRequest
     private lateinit var mLocationCallback: LocationCallback
     private lateinit var settingsBroadcastReceiver: BroadcastReceiver
+    private lateinit var startTrackingReceiver: BroadcastReceiver
 
     private val mBinder = ServiceBinder()
 
     private var currentTime: Long? = null
     private var previousTime: Long? = null
+    private var firstLocation: Location? = null
     private var newLocation: Location? = null
     private var prevLocation: Location? = null
     private var lastDisplacement: Float = DEFAULT_LOCATION_REQUEST_DISPLACEMENT
@@ -89,6 +92,7 @@ class LocationProvider : Service(),
         mFusedLocationProviderClient = FusedLocationProviderClient(applicationContext)
         createLocationRequest()
         initSettingsUpdatedReceiver()
+        initStartTrackingReceiver()
     }
 
 
@@ -116,6 +120,7 @@ class LocationProvider : Service(),
         mLocationRequest.interval = lastTimeInterval
         mLocationRequest.fastestInterval = fastestTimeInterval
         mLocationRequest.smallestDisplacement = lastDisplacement
+        mLocationRequest.priority = PRIORITY_HIGH_ACCURACY
 
         requestLocationUpdate()
     }
@@ -180,6 +185,8 @@ class LocationProvider : Service(),
         intent.putExtra(KEY_ACCURACY, getGPSAccuracy)
         intent.putExtra(KEY_ALTITUDE, getAltitude)
         intent.putExtra(KEY_LOCATION, newLocation)
+        intent.putExtra(KEY_DISTANCE, distanceSequment)
+        intent.putExtra(KEY_PROVIDER_SOURCE, providerSource)
         //intent.putExtra(LocationProvider.KEY_CURRENT_TIME, currentTime)
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
     }
@@ -264,6 +271,28 @@ class LocationProvider : Service(),
             return altitude
         }
 
+    val providerSource: String
+        get() {
+            var provider = VALUE_MISSING
+            newLocation?.let {
+
+                    provider = it.provider.toString()
+            }
+            return provider
+        }
+
+    val distanceSequment: String
+        get() {
+            var distance = VALUE_MISSING
+            newLocation?.let {
+
+                distance = "${round(it.distanceTo(firstLocation).toDouble(),2)} m"
+            }
+            return distance
+        }
+
+
+
     private fun initSettingsUpdatedReceiver() {
         settingsBroadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(contxt: Context?, intent: Intent?) {
@@ -277,6 +306,16 @@ class LocationProvider : Service(),
         }
         val filter = IntentFilter(BR_NEW_SETTING)
         applicationContext.registerReceiver(settingsBroadcastReceiver,filter)
+    }
+
+    private fun initStartTrackingReceiver() {
+        startTrackingReceiver = object : BroadcastReceiver() {
+            override fun onReceive(contxt: Context?, intent: Intent?) {
+                firstLocation = newLocation
+            }
+        }
+        val filter = IntentFilter(BR_FIRST_LOCATION)
+        applicationContext.registerReceiver(startTrackingReceiver,filter)
     }
 
     override fun onDestroy() {
@@ -298,11 +337,13 @@ class LocationProvider : Service(),
         val NOTIFICATION_ID = 100
 
         const val BR_NEW_LOCATION = "BR_NEW_LOCATION"
+        const val BR_FIRST_LOCATION = "BR_FIRST_LOCATION"
         const val KEY_DISTANCE = "KEY_DISTANCE"
         const val KEY_TIME = "KEY_TIME"
         const val KEY_CURRENT_TIME = "KEY_CURRENT_TIME"
         const val KEY_HEADING = "KEY_HEADING"
         const val KEY_SPEED = "KEY_SPEED"
+        const val KEY_PROVIDER_SOURCE = "KEY_PROVIDER_SOURCE"
 
         const val BR_NEW_SETTING = "BR_NEW_LOCATION"
         const val KEY_SET_REQUEST_DISPLACEMENT = "KEY_SET_REQUEST_DISPLACEMENT"

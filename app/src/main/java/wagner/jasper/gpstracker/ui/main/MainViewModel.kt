@@ -39,6 +39,18 @@ class MainViewModel(
     val altitude: LiveData<String>
         get() = _altitude
 
+    private val _elapsedTimeCurrentRun = MutableLiveData<String>()
+    val elapsedTimeCurrentRun: LiveData<String>
+        get() = _elapsedTimeCurrentRun
+
+    private val _distanceCurrentRun = MutableLiveData<String>()
+    val distanceCurrentRun: LiveData<String>
+        get() = _distanceCurrentRun
+
+    private val _providerSource = MutableLiveData<String>()
+    val providerSource: LiveData<String>
+        get() = _providerSource
+
 
     fun enableGPS(context: Activity) {
         context.startService(Intent(context, LocationProvider::class.java))
@@ -48,11 +60,16 @@ class MainViewModel(
         context.stopService(Intent(context, LocationProvider::class.java))
     }
 
-    fun updateUI(speed: String?, heading: String?, altitude: String?, accuracy: String?) {
+    fun updateUI(speed: String?, heading: String?, altitude: String?,
+                 accuracy: String?, elapsedTime: String?,
+                 distanceCurrentRun: String? , providerSource: String?) {
         _gpsAccuracy.value = accuracy
         _speed.value = speed
         _heading.value = heading
         _altitude.value = altitude
+        _elapsedTimeCurrentRun.value = elapsedTime
+        _distanceCurrentRun.value = distanceCurrentRun
+        _providerSource.value = providerSource
     }
 
     fun addToList(location: Location){
@@ -69,6 +86,7 @@ class MainViewModel(
 
     fun startTracking() {
         _locationList.value = ArrayList()
+        LocationProvider
     }
 
     fun saveTracking(context: Activity, filename: String, time: String) {
