@@ -22,9 +22,9 @@ import wagner.jasper.gpstracker.R
 import wagner.jasper.gpstracker.services.LocationProvider
 import wagner.jasper.gpstracker.services.LocationProvider.Companion.BR_FIRST_LOCATION
 import wagner.jasper.gpstracker.services.LocationProvider.Companion.VALUE_MISSING
+import wagner.jasper.gpstracker.utils.Utils.getDate
+import wagner.jasper.gpstracker.utils.Utils.getTime
 import wagner.jasper.gpstracker.utils.Utils.round
-import java.util.*
-import kotlin.collections.ArrayList
 
 class MainFragment : Fragment() {
 
@@ -45,8 +45,8 @@ class MainFragment : Fragment() {
     private var tvDistanceCurrentRun: TextView? = null
     private var fileName: String = ""
     private var fileNameNumber = 0
-    private var locationList = ArrayList<Location>()
     private var startTime: Long? = null
+    private var trackingIsRunning = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -65,6 +65,9 @@ class MainFragment : Fragment() {
     }
 
     private fun observeLiveDataChanges() {
+        viewModel.providerSource.observe(this.viewLifecycleOwner, Observer {
+            tvProviderSource!!.text = it.toString()
+        })
         viewModel.gpsAccuracy.observe(this.viewLifecycleOwner, Observer {
             tvAccuracy!!.text = it.toString()
         })
@@ -76,6 +79,12 @@ class MainFragment : Fragment() {
         })
         viewModel.altitude.observe(this.viewLifecycleOwner, Observer {
             tvAltitude!!.text = it.toString()
+        })
+        viewModel.distanceCurrentRun.observe(this.viewLifecycleOwner, Observer {
+            tvDistanceCurrentRun!!.text = it.toString()
+        })
+        viewModel.elapsedTimeCurrentRun.observe(this.viewLifecycleOwner, Observer {
+            tvElapsedTimeCurrentRun!!.text = it.toString()
         })
     }
 
@@ -117,6 +126,7 @@ class MainFragment : Fragment() {
                 )
             } else {
                 viewModel.disableGPS(activity!!)
+                context!!.unregisterReceiver(locationBroadcastReceiver)
                 customToast.show(
                     context,
                     "GPS Provider disabled",
@@ -128,15 +138,16 @@ class MainFragment : Fragment() {
 
         switchTracking!!.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked) {
-                locationList = ArrayList<Location>()
+                trackingIsRunning = true
                 sendStartTrackingIntent()
                 setStartTime()
-                //viewModel.startTracking()
+                viewModel.startTracking()
                 fileName = "${getDate()}_$fileNameNumber"
                 customToast.show(context, "Tracking started", Gravity.BOTTOM, Toast.LENGTH_SHORT)
             } else {
-                viewModel.saveLocationList(locationList)
+                trackingIsRunning = false
                 viewModel.saveTracking(activity!!, fileName, getTime())
+                viewModel.update(VALUE_MISSING,VALUE_MISSING)
                 fileNameNumber = +1
                 customToast.show(context, "Tracking stopped", Gravity.BOTTOM, Toast.LENGTH_SHORT)
             }
@@ -152,31 +163,11 @@ class MainFragment : Fragment() {
             var time = VALUE_MISSING
             val currentTime = System.currentTimeMillis()
             startTime?.let {
-                val diff = round(((currentTime - it) / 1000.0), 2)
-                time = diff.toString()
+                val diff = round(((currentTime - it) / 1000.0), 1)
+                time = "$diff s"
             }
             return time
         }
-
-    private fun getDate(): String {
-        val calender = Calendar.getInstance()
-
-        val day = calender.get(Calendar.DAY_OF_MONTH)
-        val month = calender.get(Calendar.MONTH)
-        val year = calender.get(Calendar.YEAR)
-        return "$day-$month-$year"
-    }
-
-    private fun getTime(): String {
-        val calender = Calendar.getInstance()
-
-        val day = calender.get(Calendar.DAY_OF_MONTH)
-        val month = calender.get(Calendar.MONTH)
-        val year = calender.get(Calendar.YEAR)
-        val hour = calender.get(Calendar.HOUR)
-        val minute = calender.get(Calendar.MINUTE)
-        return "$day-$month-$year $hour:$minute"
-    }
 
     private fun sendStartTrackingIntent() {
         val intent = Intent(BR_FIRST_LOCATION)
@@ -186,27 +177,29 @@ class MainFragment : Fragment() {
     private fun initBroadcastReceiver() {
         locationBroadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(contxt: Context?, intent: Intent?) {
-                val meters = intent!!.getDoubleExtra(LocationProvider.KEY_DISTANCE, 0.0)
-                val heading = intent.getStringExtra(LocationProvider.KEY_HEADING)
-                val speed = intent.getStringExtra(LocationProvider.KEY_SPEED)
-                val accuracy = intent.getStringExtra(LocationProvider.KEY_ACCURACY)
-                val providerSource = intent.getStringExtra(LocationProvider.KEY_PROVIDER_SOURCE)
-                val distanceCurrentRun = intent.getStringExtra(LocationProvider.KEY_DISTANCE)
-                //val elapsedTime = intent.getStringExtra(LocationProvider.KEY_TIME)
-                val altitude = intent.getStringExtra(LocationProvider.KEY_ALTITUDE)
-                val location = intent.getParcelableExtra<Location>(LocationProvider.KEY_LOCATION)
+                intent?.let {
+                    val heading = it.getStringExtra(LocationProvider.KEY_HEADING)
+                    val speed = it.getStringExtra(LocationProvider.KEY_SPEED)
+                    val accuracy = it.getStringExtra(LocationProvider.KEY_ACCURACY)
+                    val providerSource = it.getStringExtra(LocationProvider.KEY_PROVIDER_SOURCE)
+                    val distanceCurrentRun = it.getStringExtra(LocationProvider.KEY_DISTANCE)
+                    val altitude = intent.getStringExtra(LocationProvider.KEY_ALTITUDE)
+                    val location =
+                        intent.getParcelableExtra<Location>(LocationProvider.KEY_LOCATION)
 
-                viewModel.updateUI(
-                    speed,
-                    heading,
-                    altitude,
-                    accuracy,
-                    getTimeElapsed,
-                    distanceCurrentRun,
-                    providerSource
-                )
-                //viewModel.addToList(location)
-                locationList.add(location)
+                    viewModel.updateUI(
+                        speed,
+                        heading,
+                        altitude,
+                        accuracy,
+                        providerSource
+                    )
+                    if (trackingIsRunning) {
+                        viewModel.update(distanceCurrentRun, getTimeElapsed)
+                        viewModel.addToList(location)
+                    }
+                    //locationList.add(location)
+                }
             }
         }
         val filter = IntentFilter(LocationProvider.BR_NEW_LOCATION)

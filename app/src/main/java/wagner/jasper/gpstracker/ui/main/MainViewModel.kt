@@ -61,15 +61,12 @@ class MainViewModel(
     }
 
     fun updateUI(speed: String?, heading: String?, altitude: String?,
-                 accuracy: String?, elapsedTime: String?,
-                 distanceCurrentRun: String? , providerSource: String?) {
+                 accuracy: String?, providerSource: String?) {
 
         _gpsAccuracy.value = accuracy
         _speed.value = speed
         _heading.value = heading
         _altitude.value = altitude
-        _elapsedTimeCurrentRun.value = elapsedTime
-        _distanceCurrentRun.value = distanceCurrentRun
         _providerSource.value = providerSource
     }
 
@@ -80,14 +77,8 @@ class MainViewModel(
         _locationList.value!!.add(location)
     }
 
-    fun saveLocationList(locationList: ArrayList<Location>) {
-        _locationList.value = locationList
-        Log.i("MainViewModel", "LocationList Saved ")
-    }
-
     fun startTracking() {
         _locationList.value = ArrayList()
-        LocationProvider
     }
 
     fun saveTracking(context: Activity, filename: String, time: String) {
@@ -108,6 +99,11 @@ class MainViewModel(
         } catch (e: Exception) {
             Log.e(TAG, "Not completed saving file: " + file.name + " " + e)
         }
+    }
+
+    fun update(distanceCurrentRun: String?, timeElapsed: String) {
+        _distanceCurrentRun.value = distanceCurrentRun
+        _elapsedTimeCurrentRun.value = timeElapsed
     }
 
     companion object {

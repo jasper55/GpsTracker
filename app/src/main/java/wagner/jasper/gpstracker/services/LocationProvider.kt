@@ -241,7 +241,7 @@ class LocationProvider : Service(),
                         Log.i("meters: ", "$meters")
                         return VALUE_MISSING
                     }
-                    speedString = round(speed.toDouble(), 1).toString()
+                    speedString = "${round(speed.toDouble(), 1)} m/s"
                 }
             }
             return speedString
@@ -255,7 +255,7 @@ class LocationProvider : Service(),
                 if (bear < 0) {
                     bear = 270 - (bear + 90)
                 }
-                bearing = bear.toInt().toString()
+                bearing = "${bear.toInt()} °"
             }
             return bearing
         }
@@ -265,7 +265,7 @@ class LocationProvider : Service(),
             var altitude = VALUE_MISSING
             newLocation?.let {
                 if (it.hasAltitude())
-                    altitude = round(it.altitude,1).toString()
+                    altitude = "${round(it.altitude,1)} m"
             }
             return altitude
         }
