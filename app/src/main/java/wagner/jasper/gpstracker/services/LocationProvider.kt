@@ -34,8 +34,7 @@ import wagner.jasper.gpstracker.utils.Utils.round
 
 class LocationProvider : Service(),
     GoogleApiClient.ConnectionCallbacks,
-    GoogleApiClient.OnConnectionFailedListener
-{
+    GoogleApiClient.OnConnectionFailedListener {
 
     private lateinit var mGoogleApiClient: GoogleApiClient
     private lateinit var mFusedLocationProviderClient: FusedLocationProviderClient
@@ -276,7 +275,7 @@ class LocationProvider : Service(),
             var provider = VALUE_MISSING
             newLocation?.let {
 
-                    provider = it.provider.toString()
+                provider = it.provider.toString()
             }
             return provider
         }
@@ -284,13 +283,13 @@ class LocationProvider : Service(),
     val distanceSequment: String
         get() {
             var distance = VALUE_MISSING
-            newLocation?.let {
-
-                distance = "${round(it.distanceTo(firstLocation).toDouble(),2)} m"
+            newLocation?.let { new ->
+                firstLocation?.let { first ->
+                    distance = "${round(new.distanceTo(first).toDouble(), 2)} m"
+                }
             }
             return distance
         }
-
 
 
     private fun initSettingsUpdatedReceiver() {
@@ -305,7 +304,7 @@ class LocationProvider : Service(),
             }
         }
         val filter = IntentFilter(BR_NEW_SETTING)
-        applicationContext.registerReceiver(settingsBroadcastReceiver,filter)
+        applicationContext.registerReceiver(settingsBroadcastReceiver, filter)
     }
 
     private fun initStartTrackingReceiver() {
@@ -315,7 +314,7 @@ class LocationProvider : Service(),
             }
         }
         val filter = IntentFilter(BR_FIRST_LOCATION)
-        applicationContext.registerReceiver(startTrackingReceiver,filter)
+        applicationContext.registerReceiver(startTrackingReceiver, filter)
     }
 
     override fun onDestroy() {

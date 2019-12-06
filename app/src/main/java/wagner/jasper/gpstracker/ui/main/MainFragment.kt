@@ -21,6 +21,7 @@ import wagner.jasper.gpstracker.extensions.show
 import wagner.jasper.gpstracker.R
 import wagner.jasper.gpstracker.services.LocationProvider
 import wagner.jasper.gpstracker.services.LocationProvider.Companion.BR_FIRST_LOCATION
+import wagner.jasper.gpstracker.services.LocationProvider.Companion.VALUE_MISSING
 import wagner.jasper.gpstracker.utils.Utils.round
 import java.util.*
 import kotlin.collections.ArrayList
@@ -148,9 +149,13 @@ class MainFragment : Fragment() {
 
     private val getTimeElapsed: String
         get() {
+            var time = VALUE_MISSING
             val currentTime = System.currentTimeMillis()
-            val diff = round(((currentTime - startTime!!) / 1000.0), 2)
-            return diff.toString()
+            startTime?.let {
+                val diff = round(((currentTime - it) / 1000.0), 2)
+                time = diff.toString()
+            }
+            return time
         }
 
     private fun getDate(): String {
@@ -191,7 +196,15 @@ class MainFragment : Fragment() {
                 val altitude = intent.getStringExtra(LocationProvider.KEY_ALTITUDE)
                 val location = intent.getParcelableExtra<Location>(LocationProvider.KEY_LOCATION)
 
-                viewModel.updateUI(speed, heading, altitude, accuracy, getTimeElapsed,distanceCurrentRun, providerSource)
+                viewModel.updateUI(
+                    speed,
+                    heading,
+                    altitude,
+                    accuracy,
+                    getTimeElapsed,
+                    distanceCurrentRun,
+                    providerSource
+                )
                 //viewModel.addToList(location)
                 locationList.add(location)
             }
