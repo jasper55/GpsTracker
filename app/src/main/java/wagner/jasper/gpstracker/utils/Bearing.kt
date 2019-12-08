@@ -3,8 +3,6 @@ package wagner.jasper.gpstracker.utils
 import android.location.Location
 import java.lang.Math.*
 import kotlin.math.abs
-import kotlin.math.cos
-import kotlin.math.sin
 
 object Bearing {
 
@@ -13,14 +11,22 @@ object Bearing {
     fun calculateBetween(start: Location, end: Location): Double {
         val lat1 = toRadians(start.latitude)
         val lat2 = toRadians(end.latitude)
-        val deltaLon = toRadians(start.longitude - end.longitude)
-        val deltaLon2 = toRadians(start.longitude) - toRadians(end.longitude)
-        val x = cos(lat2) * sin(deltaLon)
-
-        val y = cos(lat1) * sin(lat2)
-        - sin(lat1) * cos(lat2) * cos(deltaLon)
-
-        val bearing = atan2(x,y)
-        return toDegrees(bearing)
+        val lon1 = toRadians(start.longitude)
+        val lon2 = toRadians(end.longitude)
+        var deltaLon = lon2 - lon1
+        val deltaPhi = log(
+            tan(lat2 / 2 + PI / 4)
+                    /
+                    tan(lat1 / 2 + PI / 4)
+        )
+        if (abs(deltaPhi) > PI) {
+            if (deltaLon > 0.0) {
+                deltaLon = -(2.0 * PI - deltaLon)
+            } else {
+                deltaLon += 2 * PI
+            }
+        }
+        return (toDegrees(
+            atan2(deltaLon, deltaPhi)) + 360.0) %360
     }
 }
