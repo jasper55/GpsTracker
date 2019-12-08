@@ -6,7 +6,7 @@ local.properties
 .idea/modules.xml
 .idea/workspace.xml
 .idea/navEditor.xml
-.idea/codeStyles/Project.iml
+.idea/codeStyles/Project.xml
 .idea/assetWizardSettings.xml
 .DS_Store
 /build
