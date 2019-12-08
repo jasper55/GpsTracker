@@ -28,6 +28,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationResult
 import android.location.LocationManager
 import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
+import wagner.jasper.gpstracker.utils.Bearing.calculateBetween
 import wagner.jasper.gpstracker.utils.GpxFile
 import wagner.jasper.gpstracker.utils.Utils.round
 
@@ -180,6 +181,7 @@ class LocationProvider : Service(),
         //intent.putExtra(LocationProvider.KEY_DISTANCE, getDistanceInMeters)
         //intent.putExtra(LocationProvider.KEY_TIME, timeElapsed)
         intent.putExtra(KEY_HEADING, getHeading)
+        intent.putExtra(KEY_HEADING_CALC, getHeadingCalc)
         intent.putExtra(KEY_SPEED, getSpeed)
         intent.putExtra(KEY_ACCURACY, getGPSAccuracy)
         intent.putExtra(KEY_ALTITUDE, getAltitude)
@@ -260,6 +262,19 @@ class LocationProvider : Service(),
             return bearing
         }
 
+    val getHeadingCalc: String
+        get() {
+            var bearing = VALUE_MISSING
+            prevLocation?.let {
+                var bear = calculateBetween(prevLocation!!,newLocation!!)
+/*                if (bear < 0) {
+                    bear = 270 - (bear + 90)
+                }*/
+                bearing = "${bear.toInt()} °"
+            }
+            return bearing
+        }
+
     val getAltitude: String
         get() {
             var altitude = VALUE_MISSING
@@ -327,6 +342,7 @@ class LocationProvider : Service(),
 
     companion object {
 
+
         const val VALUES_BEFORE_UI_UPDATE = 8
         private val DEFAULT_LOCATION_REQUEST_INTERVAL: Long = 100
         private val DEFAULT_LOCATION_REQUEST_DISPLACEMENT = 0.2f
@@ -341,6 +357,7 @@ class LocationProvider : Service(),
         const val KEY_TIME = "KEY_TIME"
         const val KEY_CURRENT_TIME = "KEY_CURRENT_TIME"
         const val KEY_HEADING = "KEY_HEADING"
+        const val KEY_HEADING_CALC = "KEY_HEADING_CALC"
         const val KEY_SPEED = "KEY_SPEED"
         const val KEY_PROVIDER_SOURCE = "KEY_PROVIDER_SOURCE"
 

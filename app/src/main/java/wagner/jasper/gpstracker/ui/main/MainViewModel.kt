@@ -35,6 +35,10 @@ class MainViewModel(
     val heading: LiveData<String>
         get() = _heading
 
+    private val _headingCalc = MutableLiveData<String>()
+    val headingCalc: LiveData<String>
+        get() = _headingCalc
+
     private val _altitude = MutableLiveData<String>()
     val altitude: LiveData<String>
         get() = _altitude
@@ -60,12 +64,13 @@ class MainViewModel(
         context.stopService(Intent(context, LocationProvider::class.java))
     }
 
-    fun updateUI(speed: String?, heading: String?, altitude: String?,
+    fun updateUI(speed: String?, heading: String?, headingCalc: String?, altitude: String?,
                  accuracy: String?, providerSource: String?) {
 
         _gpsAccuracy.value = accuracy
         _speed.value = speed
         _heading.value = heading
+        _headingCalc.value = headingCalc
         _altitude.value = altitude
         _providerSource.value = providerSource
     }

@@ -40,6 +40,7 @@ class MainFragment : Fragment() {
     private var tvAccuracy: TextView? = null
     private var tvSpeed: TextView? = null
     private var tvHeading: TextView? = null
+    private var tvHeadingCalc: TextView? = null
     private var tvAltitude: TextView? = null
     private var tvElapsedTimeCurrentRun: TextView? = null
     private var tvDistanceCurrentRun: TextView? = null
@@ -77,6 +78,9 @@ class MainFragment : Fragment() {
         viewModel.heading.observe(this.viewLifecycleOwner, Observer {
             tvHeading!!.text = it.toString()
         })
+        viewModel.headingCalc.observe(this.viewLifecycleOwner, Observer {
+            tvHeadingCalc!!.text = it.toString()
+        })
         viewModel.altitude.observe(this.viewLifecycleOwner, Observer {
             tvAltitude!!.text = it.toString()
         })
@@ -108,6 +112,7 @@ class MainFragment : Fragment() {
         tvAccuracy = view.findViewById(R.id.tvAccuracy)
         tvSpeed = view.findViewById(R.id.tvSpeed)
         tvHeading = view.findViewById(R.id.tvHeading)
+        tvHeadingCalc = view.findViewById(R.id.tvHeading_calc)
         tvAltitude = view.findViewById(R.id.tvAltitude)
         tvElapsedTimeCurrentRun = view.findViewById(R.id.tvElapsedTimeCurrentRun)
         tvDistanceCurrentRun = view.findViewById(R.id.tvDistanceCurrentRun)
@@ -179,6 +184,7 @@ class MainFragment : Fragment() {
             override fun onReceive(contxt: Context?, intent: Intent?) {
                 intent?.let {
                     val heading = it.getStringExtra(LocationProvider.KEY_HEADING)
+                    val headingCalc = it.getStringExtra(LocationProvider.KEY_HEADING_CALC)
                     val speed = it.getStringExtra(LocationProvider.KEY_SPEED)
                     val accuracy = it.getStringExtra(LocationProvider.KEY_ACCURACY)
                     val providerSource = it.getStringExtra(LocationProvider.KEY_PROVIDER_SOURCE)
@@ -190,6 +196,7 @@ class MainFragment : Fragment() {
                     viewModel.updateUI(
                         speed,
                         heading,
+                        headingCalc,
                         altitude,
                         accuracy,
                         providerSource
