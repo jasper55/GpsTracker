@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.Criteria
+import android.location.GpsStatus
 import android.location.Location
 import android.os.Binder
 import android.os.Bundle
@@ -26,22 +27,28 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationResult
 import android.location.LocationManager
+import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
+import wagner.jasper.gpstracker.utils.Bearing.calculateBetween
+import wagner.jasper.gpstracker.utils.GpxFile
 import wagner.jasper.gpstracker.utils.Utils.round
 
 
-class LocationProvider : Service(), GoogleApiClient.ConnectionCallbacks,
+class LocationProvider : Service(),
+    GoogleApiClient.ConnectionCallbacks,
     GoogleApiClient.OnConnectionFailedListener {
 
     private lateinit var mGoogleApiClient: GoogleApiClient
     private lateinit var mFusedLocationProviderClient: FusedLocationProviderClient
-    lateinit var mLocationRequest: LocationRequest
+    private lateinit var mLocationRequest: LocationRequest
     private lateinit var mLocationCallback: LocationCallback
     private lateinit var settingsBroadcastReceiver: BroadcastReceiver
+    private lateinit var startTrackingReceiver: BroadcastReceiver
 
     private val mBinder = ServiceBinder()
 
     private var currentTime: Long? = null
     private var previousTime: Long? = null
+    private var firstLocation: Location? = null
     private var newLocation: Location? = null
     private var prevLocation: Location? = null
     private var lastDisplacement: Float = DEFAULT_LOCATION_REQUEST_DISPLACEMENT
@@ -85,6 +92,7 @@ class LocationProvider : Service(), GoogleApiClient.ConnectionCallbacks,
         mFusedLocationProviderClient = FusedLocationProviderClient(applicationContext)
         createLocationRequest()
         initSettingsUpdatedReceiver()
+        initStartTrackingReceiver()
     }
 
 
@@ -112,6 +120,7 @@ class LocationProvider : Service(), GoogleApiClient.ConnectionCallbacks,
         mLocationRequest.interval = lastTimeInterval
         mLocationRequest.fastestInterval = fastestTimeInterval
         mLocationRequest.smallestDisplacement = lastDisplacement
+        mLocationRequest.priority = PRIORITY_HIGH_ACCURACY
 
         requestLocationUpdate()
     }
@@ -156,7 +165,7 @@ class LocationProvider : Service(), GoogleApiClient.ConnectionCallbacks,
     private fun onLocationChanged(lastLocation: Location?) {
         if (newLocation == null) {
             newLocation = lastLocation
-        } else if (prevLocation != newLocation) {
+        } else if (prevLocation?.elapsedRealtimeNanos != newLocation?.elapsedRealtimeNanos) {
             previousTime = currentTime
             currentTime = System.currentTimeMillis()
             prevLocation = newLocation
@@ -172,23 +181,16 @@ class LocationProvider : Service(), GoogleApiClient.ConnectionCallbacks,
         //intent.putExtra(LocationProvider.KEY_DISTANCE, getDistanceInMeters)
         //intent.putExtra(LocationProvider.KEY_TIME, timeElapsed)
         intent.putExtra(KEY_HEADING, getHeading)
+        intent.putExtra(KEY_HEADING_CALC, getHeadingCalc)
         intent.putExtra(KEY_SPEED, getSpeed)
         intent.putExtra(KEY_ACCURACY, getGPSAccuracy)
         intent.putExtra(KEY_ALTITUDE, getAltitude)
+        intent.putExtra(KEY_LOCATION, newLocation)
+        intent.putExtra(KEY_DISTANCE, distanceSequment)
+        intent.putExtra(KEY_PROVIDER_SOURCE, providerSource)
         //intent.putExtra(LocationProvider.KEY_CURRENT_TIME, currentTime)
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
     }
-
-    private val getGPSAccuracy: String
-        get() {
-            var acc = VALUE_MISSING
-            newLocation?.let {
-                if (it.hasAccuracy()) {
-                    acc = it.accuracy.toString()
-                }
-            }
-            return acc
-        }
 
     private fun removeLocationUpdate() {
         mFusedLocationProviderClient.removeLocationUpdates(mLocationCallback)
@@ -215,6 +217,17 @@ class LocationProvider : Service(), GoogleApiClient.ConnectionCallbacks,
         }
     }
 
+    private val getGPSAccuracy: String
+        get() {
+            var acc = VALUE_MISSING
+            newLocation?.let {
+                if (it.hasAccuracy()) {
+                    acc = round(it.accuracy.toDouble(),1).toString()
+                }
+            }
+            return acc
+        }
+
     private val getSpeed: String
         get() {
             var speedString = VALUE_MISSING
@@ -230,7 +243,7 @@ class LocationProvider : Service(), GoogleApiClient.ConnectionCallbacks,
                         Log.i("meters: ", "$meters")
                         return VALUE_MISSING
                     }
-                    speedString = round(speed.toDouble(), 1).toString()
+                    speedString = "${round(speed.toDouble(), 1)} m/s"
                 }
             }
             return speedString
@@ -244,7 +257,20 @@ class LocationProvider : Service(), GoogleApiClient.ConnectionCallbacks,
                 if (bear < 0) {
                     bear = 270 - (bear + 90)
                 }
-                bearing = bear.toString()
+                bearing = "${bear.toInt()} °"
+            }
+            return bearing
+        }
+
+    val getHeadingCalc: String
+        get() {
+            var bearing = VALUE_MISSING
+            prevLocation?.let {
+                var bear = calculateBetween(prevLocation!!,newLocation!!)
+/*                if (bear < 0) {
+                    bear = 270 - (bear + 90)
+                }*/
+                bearing = "${bear.toInt()} °"
             }
             return bearing
         }
@@ -254,10 +280,32 @@ class LocationProvider : Service(), GoogleApiClient.ConnectionCallbacks,
             var altitude = VALUE_MISSING
             newLocation?.let {
                 if (it.hasAltitude())
-                    altitude = it.altitude.toString()
+                    altitude = "${round(it.altitude,1)} m"
             }
             return altitude
         }
+
+    val providerSource: String
+        get() {
+            var provider = VALUE_MISSING
+            newLocation?.let {
+
+                provider = it.provider.toString()
+            }
+            return provider
+        }
+
+    val distanceSequment: String
+        get() {
+            var distance = VALUE_MISSING
+            newLocation?.let { new ->
+                firstLocation?.let { first ->
+                    distance = "${round(new.distanceTo(first).toDouble(), 2)} m"
+                }
+            }
+            return distance
+        }
+
 
     private fun initSettingsUpdatedReceiver() {
         settingsBroadcastReceiver = object : BroadcastReceiver() {
@@ -271,7 +319,17 @@ class LocationProvider : Service(), GoogleApiClient.ConnectionCallbacks,
             }
         }
         val filter = IntentFilter(BR_NEW_SETTING)
-        applicationContext.registerReceiver(settingsBroadcastReceiver,filter)
+        applicationContext.registerReceiver(settingsBroadcastReceiver, filter)
+    }
+
+    private fun initStartTrackingReceiver() {
+        startTrackingReceiver = object : BroadcastReceiver() {
+            override fun onReceive(contxt: Context?, intent: Intent?) {
+                firstLocation = newLocation
+            }
+        }
+        val filter = IntentFilter(BR_FIRST_LOCATION)
+        applicationContext.registerReceiver(startTrackingReceiver, filter)
     }
 
     override fun onDestroy() {
@@ -284,6 +342,7 @@ class LocationProvider : Service(), GoogleApiClient.ConnectionCallbacks,
 
     companion object {
 
+
         const val VALUES_BEFORE_UI_UPDATE = 8
         private val DEFAULT_LOCATION_REQUEST_INTERVAL: Long = 100
         private val DEFAULT_LOCATION_REQUEST_DISPLACEMENT = 0.2f
@@ -293,17 +352,21 @@ class LocationProvider : Service(), GoogleApiClient.ConnectionCallbacks,
         val NOTIFICATION_ID = 100
 
         const val BR_NEW_LOCATION = "BR_NEW_LOCATION"
+        const val BR_FIRST_LOCATION = "BR_FIRST_LOCATION"
         const val KEY_DISTANCE = "KEY_DISTANCE"
         const val KEY_TIME = "KEY_TIME"
         const val KEY_CURRENT_TIME = "KEY_CURRENT_TIME"
         const val KEY_HEADING = "KEY_HEADING"
+        const val KEY_HEADING_CALC = "KEY_HEADING_CALC"
         const val KEY_SPEED = "KEY_SPEED"
+        const val KEY_PROVIDER_SOURCE = "KEY_PROVIDER_SOURCE"
 
         const val BR_NEW_SETTING = "BR_NEW_LOCATION"
         const val KEY_SET_REQUEST_DISPLACEMENT = "KEY_SET_REQUEST_DISPLACEMENT"
         const val KEY_SET_REQUEST_INTERVAL = "KEY_SET_REQUEST_INTERVAL"
         const val KEY_ACCURACY = "KEY_ACCURACY"
         const val KEY_ALTITUDE = "KEY_ALTITUDE"
+        const val KEY_LOCATION = "KEY_LOCATION"
 
         const val VALUE_MISSING = "--"
     }

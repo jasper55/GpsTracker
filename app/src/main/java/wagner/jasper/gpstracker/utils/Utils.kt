@@ -1,5 +1,7 @@
 package wagner.jasper.gpstracker.utils
 
+import java.util.*
+
 
 object Utils {
 
@@ -11,6 +13,26 @@ object Utils {
         value *= factor
         val tmp = Math.round(value)
         return tmp.toDouble() / factor
+    }
+
+    fun getDate(): String {
+        val calender = Calendar.getInstance()
+
+        val day = calender.get(Calendar.DAY_OF_MONTH)
+        val month = calender.get(Calendar.MONTH)
+        val year = calender.get(Calendar.YEAR)
+        return "$day-$month-$year"
+    }
+
+    fun getTime(): String {
+        val calender = Calendar.getInstance()
+
+        val day = calender.get(Calendar.DAY_OF_MONTH)
+        val month = calender.get(Calendar.MONTH)
+        val year = calender.get(Calendar.YEAR)
+        val hour = calender.get(Calendar.HOUR)
+        val minute = calender.get(Calendar.MINUTE)
+        return "$day-$month-$year $hour:$minute"
     }
 
     val VMG_FRAGMENT_TAG = 1
