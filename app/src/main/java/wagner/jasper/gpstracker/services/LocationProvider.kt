@@ -163,8 +163,8 @@ class LocationProvider : Service(),
     }
 
     private fun onLocationChanged(lastLocation: Location?) {
-        if (newLocation == null) {
-            newLocation = lastLocation
+        if (prevLocation == null) {
+            prevLocation = lastLocation
         } else if (prevLocation?.elapsedRealtimeNanos != newLocation?.elapsedRealtimeNanos) {
             previousTime = currentTime
             currentTime = System.currentTimeMillis()
