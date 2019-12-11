@@ -7,6 +7,7 @@ import android.content.IntentFilter
 import android.location.Location
 import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -32,6 +33,7 @@ class MainFragment : Fragment() {
         fun newInstance() = MainFragment()
     }
 
+    private lateinit var localBroadcastManager: LocalBroadcastManager
     private lateinit var locationBroadcastReceiver: BroadcastReceiver
     private lateinit var viewModel: MainViewModel
     private var switchProvider: Switch? = null
@@ -46,7 +48,6 @@ class MainFragment : Fragment() {
     private var tvDistanceCurrentRun: TextView? = null
     private var fileName: String = ""
     private var fileNameNumber = 0
-    private var startTime: Long? = null
     private var trackingIsRunning = false
 
     override fun onCreateView(
@@ -61,8 +62,8 @@ class MainFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
-        initBroadcastReceiver()
         observeLiveDataChanges()
+        localBroadcastManager =LocalBroadcastManager.getInstance(activity!!.applicationContext!!)
     }
 
     private fun observeLiveDataChanges() {
@@ -94,12 +95,15 @@ class MainFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        LocalBroadcastManager.getInstance(activity!!.applicationContext)
-            .registerReceiver(
-                locationBroadcastReceiver,
-                IntentFilter(LocationProvider.BR_NEW_LOCATION)
-            )
         observeLiveDataChanges()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        initBroadcastReceiver()
+        localBroadcastManager
+            .registerReceiver(locationBroadcastReceiver,
+                IntentFilter(LocationProvider.BR_NEW_LOCATION))
     }
 
     override fun onDestroy() {
@@ -144,54 +148,41 @@ class MainFragment : Fragment() {
         switchTracking!!.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked) {
                 trackingIsRunning = true
-                sendStartTrackingIntent()
-                setStartTime()
+                //sendStartTrackingIntent()
+                viewModel.setStartTime()
                 viewModel.startTracking()
+                sendStartTrackingIntent()
                 fileName = "${getDate()}_$fileNameNumber"
                 customToast.show(context, "Tracking started", Gravity.BOTTOM, Toast.LENGTH_SHORT)
             } else {
                 trackingIsRunning = false
                 viewModel.saveTracking(activity!!, fileName, getTime())
-                viewModel.update(VALUE_MISSING,VALUE_MISSING)
+                viewModel.update(VALUE_MISSING, false)
                 fileNameNumber = +1
                 customToast.show(context, "Tracking stopped", Gravity.BOTTOM, Toast.LENGTH_SHORT)
             }
         }
     }
 
-    private fun setStartTime() {
-        startTime = System.currentTimeMillis()
-    }
-
-    private val getTimeElapsed: String
-        get() {
-            var time = VALUE_MISSING
-            val currentTime = System.currentTimeMillis()
-            startTime?.let {
-                val diff = round(((currentTime - it) / 1000.0), 1)
-                time = "$diff s"
-            }
-            return time
-        }
-
     private fun sendStartTrackingIntent() {
         val intent = Intent(BR_FIRST_LOCATION)
-        LocalBroadcastManager.getInstance(this.context!!).sendBroadcast(intent)
+        localBroadcastManager.sendBroadcast(intent)
     }
 
     private fun initBroadcastReceiver() {
         locationBroadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(contxt: Context?, intent: Intent?) {
-                intent?.let {
-                    val heading = it.getStringExtra(LocationProvider.KEY_HEADING)
-                    val headingCalc = it.getStringExtra(LocationProvider.KEY_HEADING_CALC)
-                    val speed = it.getStringExtra(LocationProvider.KEY_SPEED)
-                    val accuracy = it.getStringExtra(LocationProvider.KEY_ACCURACY)
-                    val providerSource = it.getStringExtra(LocationProvider.KEY_PROVIDER_SOURCE)
-                    val distanceCurrentRun = it.getStringExtra(LocationProvider.KEY_DISTANCE)
-                    val altitude = intent.getStringExtra(LocationProvider.KEY_ALTITUDE)
-                    val location =
-                        intent.getParcelableExtra<Location>(LocationProvider.KEY_LOCATION)
+
+                intent?.apply {
+                    Log.i("Location Debugging",action.toString())
+                    val heading = getStringExtra(LocationProvider.KEY_HEADING)
+                    val headingCalc = getStringExtra(LocationProvider.KEY_HEADING_CALC)
+                    val speed = getStringExtra(LocationProvider.KEY_SPEED)
+                    val accuracy = getStringExtra(LocationProvider.KEY_ACCURACY)
+                    val providerSource = getStringExtra(LocationProvider.KEY_PROVIDER_SOURCE)
+                    val distanceCurrentRun = getStringExtra(LocationProvider.KEY_DISTANCE)
+                    val altitude = getStringExtra(LocationProvider.KEY_ALTITUDE)
+                    val location = getParcelableExtra<Location>(LocationProvider.KEY_LOCATION)
 
                     viewModel.updateUI(
                         speed,
@@ -202,15 +193,13 @@ class MainFragment : Fragment() {
                         providerSource
                     )
                     if (trackingIsRunning) {
-                        viewModel.update(distanceCurrentRun, getTimeElapsed)
+                        viewModel.update(distanceCurrentRun, true)
                         viewModel.addToList(location)
                     }
                     //locationList.add(location)
                 }
             }
         }
-        val filter = IntentFilter(LocationProvider.BR_NEW_LOCATION)
-        context!!.registerReceiver(locationBroadcastReceiver, filter)
     }
 
 }

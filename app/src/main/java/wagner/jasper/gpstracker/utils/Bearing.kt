@@ -6,8 +6,6 @@ import kotlin.math.abs
 
 object Bearing {
 
-    const val earthRadius = 5.10
-
     fun calculateBetween(start: Location, end: Location): Double {
         val lat1 = toRadians(start.latitude)
         val lat2 = toRadians(end.latitude)

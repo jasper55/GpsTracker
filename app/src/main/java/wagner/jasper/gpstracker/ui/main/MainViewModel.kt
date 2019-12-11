@@ -12,6 +12,8 @@ import wagner.jasper.gpstracker.services.LocationProvider
 import wagner.jasper.gpstracker.utils.GpxFile
 import java.io.File
 import wagner.jasper.gpstracker.R
+import wagner.jasper.gpstracker.services.LocationProvider.Companion.VALUE_MISSING
+import wagner.jasper.gpstracker.utils.Utils
 
 
 class MainViewModel(
@@ -55,6 +57,9 @@ class MainViewModel(
     val providerSource: LiveData<String>
         get() = _providerSource
 
+    private var startTime: Long? = null
+
+
 
     fun enableGPS(context: Activity) {
         context.startService(Intent(context, LocationProvider::class.java))
@@ -80,6 +85,7 @@ class MainViewModel(
             _locationList.value = ArrayList()
         }
         _locationList.value!!.add(location)
+        Log.i("Location Debugging", "Location saved to list")
     }
 
     fun startTracking() {
@@ -106,9 +112,26 @@ class MainViewModel(
         }
     }
 
-    fun update(distanceCurrentRun: String?, timeElapsed: String) {
+    fun setStartTime() {
+        startTime = System.currentTimeMillis()
+    }
+
+    private val getTimeElapsed: String
+        get() {
+            var time = LocationProvider.VALUE_MISSING
+            val currentTime = System.currentTimeMillis()
+            startTime?.let {
+                val diff = Utils.round(((currentTime - it) / 1000.0), 1)
+                time = "$diff s"
+            }
+            return time
+        }
+
+    fun update(distanceCurrentRun: String?, updateElapsedTime: Boolean) {
         _distanceCurrentRun.value = distanceCurrentRun
-        _elapsedTimeCurrentRun.value = timeElapsed
+        if(updateElapsedTime)
+        _elapsedTimeCurrentRun.value = getTimeElapsed
+        else _elapsedTimeCurrentRun.value = VALUE_MISSING
     }
 
     companion object {
