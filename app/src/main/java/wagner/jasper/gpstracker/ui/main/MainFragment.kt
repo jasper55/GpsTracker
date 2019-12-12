@@ -63,8 +63,7 @@ class MainFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
         observeLiveDataChanges()
-        localBroadcastManager =LocalBroadcastManager.getInstance(activity!!.applicationContext!!)
-    }
+        }
 
     private fun observeLiveDataChanges() {
         viewModel.providerSource.observe(this.viewLifecycleOwner, Observer {
@@ -96,14 +95,17 @@ class MainFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         observeLiveDataChanges()
+        initBroadcastReceiver()
+        localBroadcastManager = LocalBroadcastManager.getInstance(activity!!.applicationContext!!)
+        localBroadcastManager
+            .registerReceiver(locationBroadcastReceiver,
+                IntentFilter(LocationProvider.BR_NEW_LOCATION))
     }
 
     override fun onStart() {
         super.onStart()
-        initBroadcastReceiver()
-        localBroadcastManager
-            .registerReceiver(locationBroadcastReceiver,
-                IntentFilter(LocationProvider.BR_NEW_LOCATION))
+
+
     }
 
     override fun onDestroy() {
