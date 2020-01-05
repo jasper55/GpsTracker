@@ -12,6 +12,7 @@ import wagner.jasper.gpstracker.services.LocationProvider
 import wagner.jasper.gpstracker.utils.GpxFile
 import java.io.File
 import wagner.jasper.gpstracker.R
+import wagner.jasper.gpstracker.utils.Utils.getDate
 
 
 class MainViewModel(
@@ -73,6 +74,29 @@ class MainViewModel(
         _headingCalc.value = headingCalc
         _altitude.value = altitude
         _providerSource.value = providerSource
+    }
+
+    fun getLastFileNumber(directory: File): Int {
+        val files = directory.listFiles()
+        var lastFileNameNumber = 0
+        if (files != null) {
+            Log.i(TAG,"$files")
+            for (file in files) {
+                Log.i(TAG,"$file")
+                if (file != null) {
+                    val filename = file.name
+                    if (filename.startsWith("${getDate()}")){
+                    var number = filename.substringAfter("${getDate()}_")
+                        .substringBefore(".gpx")
+                    //lastFileNameNumber = number.toInt()
+                    Log.i(TAG,"$filename")
+                    Log.i(TAG,"$number")
+                    lastFileNameNumber = number.toInt()
+                    }
+                }
+            }
+        }
+        return lastFileNameNumber
     }
 
     fun addToList(location: Location){
