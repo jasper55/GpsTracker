@@ -7,7 +7,6 @@ import android.content.IntentFilter
 import android.location.Location
 import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
-import android.util.Log
 import android.view.Gravity
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -64,7 +63,6 @@ class MainFragment : Fragment() {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
         fileNameNumber = viewModel.getLastFileNumber(context!!.filesDir)
-        Log.i("MainFragment", "$fileNameNumber")
         initBroadcastReceiver()
         observeLiveDataChanges()
     }
