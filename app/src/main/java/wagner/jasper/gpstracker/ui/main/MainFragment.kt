@@ -7,7 +7,6 @@ import android.content.IntentFilter
 import android.location.Location
 import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
-import android.util.Log
 import android.view.Gravity
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -46,9 +45,10 @@ class MainFragment : Fragment() {
     private var tvElapsedTimeCurrentRun: TextView? = null
     private var tvDistanceCurrentRun: TextView? = null
     private var fileName: String = ""
-    private var fileNameNumber = 0
+    private var fileNameNumber: Int = 0
     private var startTime: Long? = null
     private var trackingIsRunning = false
+    private var gpsIsEnabled = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -62,6 +62,7 @@ class MainFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
+        fileNameNumber = viewModel.getLastFileNumber(context!!.filesDir)
         initBroadcastReceiver()
         observeLiveDataChanges()
     }
@@ -124,6 +125,7 @@ class MainFragment : Fragment() {
         switchProvider!!.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked) {
                 viewModel.enableGPS(activity!!)
+                gpsIsEnabled = true
                 customToast.show(
                     context,
                     "GPS Provider enabled",
@@ -132,7 +134,7 @@ class MainFragment : Fragment() {
                 )
             } else {
                 viewModel.disableGPS(activity!!)
-
+                gpsIsEnabled = false
                 try {
                     context!!.unregisterReceiver(locationBroadcastReceiver)
                 } catch (e: Exception) {
@@ -147,20 +149,26 @@ class MainFragment : Fragment() {
         }
 
         switchTracking!!.setOnCheckedChangeListener { buttonView, isChecked ->
-            if (isChecked) {
+            if (isChecked && gpsIsEnabled) {
                 trackingIsRunning = true
+                fileNameNumber += 1
                 sendStartTrackingIntent()
                 setStartTime()
                 viewModel.startTracking()
                 fileName = "${getDate()}_$fileNameNumber"
                 customToast.show(context, "Tracking started", Gravity.BOTTOM, Toast.LENGTH_SHORT)
-            } else {
+            } else if (!isChecked && gpsIsEnabled) {
                 trackingIsRunning = false
                 viewModel.saveTracking(activity!!, fileName, getTime())
                 viewModel.update(VALUE_MISSING,VALUE_MISSING)
-                Log.i("MainFragment","$fileNameNumber")
-                fileNameNumber += 1
                 customToast.show(context, "Tracking stopped", Gravity.BOTTOM, Toast.LENGTH_SHORT)
+            }
+            else if (isChecked && !gpsIsEnabled) {
+                customToast.show(context, "gps not enabled", Gravity.CENTER_VERTICAL, Toast.LENGTH_LONG, isErrorToast = true)
+            }
+            else if (!isChecked && !gpsIsEnabled) {
+                customToast.show(context, "gps not enabled", Gravity.CENTER_VERTICAL, Toast.LENGTH_LONG, isErrorToast = true)
+
             }
         }
     }
