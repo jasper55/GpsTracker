@@ -7,6 +7,7 @@ import android.content.IntentFilter
 import android.location.Location
 import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -131,7 +132,11 @@ class MainFragment : Fragment() {
                 )
             } else {
                 viewModel.disableGPS(activity!!)
-                context!!.unregisterReceiver(locationBroadcastReceiver)
+
+                try {
+                    context!!.unregisterReceiver(locationBroadcastReceiver)
+                } catch (e: Exception) {
+                }
                 customToast.show(
                     context,
                     "GPS Provider disabled",
@@ -153,7 +158,8 @@ class MainFragment : Fragment() {
                 trackingIsRunning = false
                 viewModel.saveTracking(activity!!, fileName, getTime())
                 viewModel.update(VALUE_MISSING,VALUE_MISSING)
-                fileNameNumber = +1
+                Log.i("MainFragment","$fileNameNumber")
+                fileNameNumber += 1
                 customToast.show(context, "Tracking stopped", Gravity.BOTTOM, Toast.LENGTH_SHORT)
             }
         }
