@@ -15,6 +15,7 @@ import android.view.ViewGroup
 import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Observer
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import wagner.jasper.gpstracker.extensions.show
@@ -49,6 +50,7 @@ class MainFragment : Fragment() {
     private var startTime: Long? = null
     private var trackingIsRunning = false
     private var gpsIsEnabled = false
+    private lateinit var customToast: Toast
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -65,6 +67,7 @@ class MainFragment : Fragment() {
         fileNameNumber = viewModel.getLastFileNumber(context!!.filesDir)
         initBroadcastReceiver()
         observeLiveDataChanges()
+        customToast = Toast(context)
     }
 
     private fun observeLiveDataChanges() {
@@ -121,7 +124,6 @@ class MainFragment : Fragment() {
 
         switchTracking = view.findViewById(R.id.switchTracking)
         switchProvider = view.findViewById(R.id.switchProvider)
-        val customToast = Toast(context)
         switchProvider!!.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked) {
                 viewModel.enableGPS(activity!!)
@@ -159,18 +161,44 @@ class MainFragment : Fragment() {
                 customToast.show(context, "Tracking started", Gravity.BOTTOM, Toast.LENGTH_SHORT)
             } else if (!isChecked && gpsIsEnabled) {
                 trackingIsRunning = false
-                viewModel.saveTracking(activity!!, fileName, getTime())
-                viewModel.update(VALUE_MISSING,VALUE_MISSING)
-                customToast.show(context, "Tracking stopped", Gravity.BOTTOM, Toast.LENGTH_SHORT)
-            }
-            else if (isChecked && !gpsIsEnabled) {
-                customToast.show(context, "gps not enabled", Gravity.CENTER_VERTICAL, Toast.LENGTH_LONG, isErrorToast = true)
-            }
-            else if (!isChecked && !gpsIsEnabled) {
-                customToast.show(context, "gps not enabled", Gravity.CENTER_VERTICAL, Toast.LENGTH_LONG, isErrorToast = true)
-
+                showSaveDialog()
+                viewModel.update(VALUE_MISSING, VALUE_MISSING)
+            } else if (isChecked && !gpsIsEnabled) {
+                customToast.show(
+                    context,
+                    "gps not enabled",
+                    Gravity.CENTER_VERTICAL,
+                    Toast.LENGTH_LONG,
+                    isErrorToast = true
+                )
+            } else if (!isChecked && !gpsIsEnabled) {
+                customToast.show(
+                    context,
+                    "gps not enabled",
+                    Gravity.CENTER_VERTICAL,
+                    Toast.LENGTH_LONG,
+                    isErrorToast = true
+                )
             }
         }
+    }
+
+    private fun showSaveDialog() {
+        val builder = AlertDialog.Builder(context!!,androidx.appcompat.R.style.Theme_AppCompat_Dialog_Alert)
+        builder.setTitle("Save Tracking")
+        builder.setMessage("Are you sure, you want to save the tracked route?")
+
+        builder.setPositiveButton("YES") { _, _ ->
+            viewModel.saveTracking(activity!!, fileName, getTime())
+            customToast.show(context, "Tracking saved", Gravity.BOTTOM, Toast.LENGTH_SHORT)
+        }
+
+        builder.setNegativeButton("NO") { dialog, which ->
+            fileNameNumber -= 1
+            customToast.show(context, "Tracking discarded", Gravity.BOTTOM, Toast.LENGTH_SHORT)
+        }
+        val dialog: AlertDialog = builder.create()
+        dialog.show()
     }
 
     private fun setStartTime() {
