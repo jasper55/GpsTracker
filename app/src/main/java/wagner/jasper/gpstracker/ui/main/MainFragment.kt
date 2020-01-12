@@ -7,7 +7,6 @@ import android.content.IntentFilter
 import android.location.Location
 import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
-import android.util.Log
 import android.view.Gravity
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -16,6 +15,7 @@ import android.view.ViewGroup
 import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Observer
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import wagner.jasper.gpstracker.extensions.show
@@ -33,7 +33,6 @@ class MainFragment : Fragment() {
         fun newInstance() = MainFragment()
     }
 
-    private lateinit var localBroadcastManager: LocalBroadcastManager
     private lateinit var locationBroadcastReceiver: BroadcastReceiver
     private lateinit var viewModel: MainViewModel
     private var switchProvider: Switch? = null
@@ -47,8 +46,11 @@ class MainFragment : Fragment() {
     private var tvElapsedTimeCurrentRun: TextView? = null
     private var tvDistanceCurrentRun: TextView? = null
     private var fileName: String = ""
-    private var fileNameNumber = 0
+    private var fileNameNumber: Int = 0
+    private var startTime: Long? = null
     private var trackingIsRunning = false
+    private var gpsIsEnabled = false
+    private lateinit var customToast: Toast
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -62,8 +64,11 @@ class MainFragment : Fragment() {
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
+        fileNameNumber = viewModel.getLastFileNumber(context!!.filesDir)
+        initBroadcastReceiver()
         observeLiveDataChanges()
-        }
+        customToast = Toast(context)
+    }
 
     private fun observeLiveDataChanges() {
         viewModel.providerSource.observe(this.viewLifecycleOwner, Observer {
@@ -94,18 +99,12 @@ class MainFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        LocalBroadcastManager.getInstance(activity!!.applicationContext)
+            .registerReceiver(
+                locationBroadcastReceiver,
+                IntentFilter(LocationProvider.BR_NEW_LOCATION)
+            )
         observeLiveDataChanges()
-        initBroadcastReceiver()
-        localBroadcastManager = LocalBroadcastManager.getInstance(activity!!.applicationContext!!)
-        localBroadcastManager
-            .registerReceiver(locationBroadcastReceiver,
-                IntentFilter(LocationProvider.BR_NEW_LOCATION))
-    }
-
-    override fun onStart() {
-        super.onStart()
-
-
     }
 
     override fun onDestroy() {
@@ -125,10 +124,10 @@ class MainFragment : Fragment() {
 
         switchTracking = view.findViewById(R.id.switchTracking)
         switchProvider = view.findViewById(R.id.switchProvider)
-        val customToast = Toast(context)
         switchProvider!!.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked) {
                 viewModel.enableGPS(activity!!)
+                gpsIsEnabled = true
                 customToast.show(
                     context,
                     "GPS Provider enabled",
@@ -137,7 +136,11 @@ class MainFragment : Fragment() {
                 )
             } else {
                 viewModel.disableGPS(activity!!)
-                context!!.unregisterReceiver(locationBroadcastReceiver)
+                gpsIsEnabled = false
+                try {
+                    context!!.unregisterReceiver(locationBroadcastReceiver)
+                } catch (e: Exception) {
+                }
                 customToast.show(
                     context,
                     "GPS Provider disabled",
@@ -148,43 +151,89 @@ class MainFragment : Fragment() {
         }
 
         switchTracking!!.setOnCheckedChangeListener { buttonView, isChecked ->
-            if (isChecked) {
+            if (isChecked && gpsIsEnabled) {
                 trackingIsRunning = true
-                //sendStartTrackingIntent()
-                viewModel.setStartTime()
-                viewModel.startTracking()
+                fileNameNumber += 1
                 sendStartTrackingIntent()
+                setStartTime()
+                viewModel.startTracking()
                 fileName = "${getDate()}_$fileNameNumber"
                 customToast.show(context, "Tracking started", Gravity.BOTTOM, Toast.LENGTH_SHORT)
-            } else {
+            } else if (!isChecked && gpsIsEnabled) {
                 trackingIsRunning = false
-                viewModel.saveTracking(activity!!, fileName, getTime())
-                viewModel.update(VALUE_MISSING, false)
-                fileNameNumber = +1
-                customToast.show(context, "Tracking stopped", Gravity.BOTTOM, Toast.LENGTH_SHORT)
+                showSaveDialog()
+                viewModel.update(VALUE_MISSING, VALUE_MISSING)
+            } else if (isChecked && !gpsIsEnabled) {
+                customToast.show(
+                    context,
+                    "gps not enabled",
+                    Gravity.CENTER_VERTICAL,
+                    Toast.LENGTH_LONG,
+                    isErrorToast = true
+                )
+            } else if (!isChecked && !gpsIsEnabled) {
+                customToast.show(
+                    context,
+                    "gps not enabled",
+                    Gravity.CENTER_VERTICAL,
+                    Toast.LENGTH_LONG,
+                    isErrorToast = true
+                )
             }
         }
     }
 
+    private fun showSaveDialog() {
+        val builder = AlertDialog.Builder(context!!,androidx.appcompat.R.style.Theme_AppCompat_Dialog_Alert)
+        builder.setTitle("Save Tracking")
+        builder.setMessage("Are you sure, you want to save the tracked route?")
+
+        builder.setPositiveButton("YES") { _, _ ->
+            viewModel.saveTracking(activity!!, fileName, getTime())
+            customToast.show(context, "Tracking saved", Gravity.BOTTOM, Toast.LENGTH_SHORT)
+        }
+
+        builder.setNegativeButton("NO") { dialog, which ->
+            fileNameNumber -= 1
+            customToast.show(context, "Tracking discarded", Gravity.BOTTOM, Toast.LENGTH_SHORT)
+        }
+        val dialog: AlertDialog = builder.create()
+        dialog.show()
+    }
+
+    private fun setStartTime() {
+        startTime = System.currentTimeMillis()
+    }
+
+    private val getTimeElapsed: String
+        get() {
+            var time = VALUE_MISSING
+            val currentTime = System.currentTimeMillis()
+            startTime?.let {
+                val diff = round(((currentTime - it) / 1000.0), 1)
+                time = "$diff s"
+            }
+            return time
+        }
+
     private fun sendStartTrackingIntent() {
         val intent = Intent(BR_FIRST_LOCATION)
-        localBroadcastManager.sendBroadcast(intent)
+        LocalBroadcastManager.getInstance(this.context!!).sendBroadcast(intent)
     }
 
     private fun initBroadcastReceiver() {
         locationBroadcastReceiver = object : BroadcastReceiver() {
             override fun onReceive(contxt: Context?, intent: Intent?) {
-
-                intent?.apply {
-                    Log.i("Location Debugging",action.toString())
-                    val heading = getStringExtra(LocationProvider.KEY_HEADING)
-                    val headingCalc = getStringExtra(LocationProvider.KEY_HEADING_CALC)
-                    val speed = getStringExtra(LocationProvider.KEY_SPEED)
-                    val accuracy = getStringExtra(LocationProvider.KEY_ACCURACY)
-                    val providerSource = getStringExtra(LocationProvider.KEY_PROVIDER_SOURCE)
-                    val distanceCurrentRun = getStringExtra(LocationProvider.KEY_DISTANCE)
-                    val altitude = getStringExtra(LocationProvider.KEY_ALTITUDE)
-                    val location = getParcelableExtra<Location>(LocationProvider.KEY_LOCATION)
+                intent?.let {
+                    val heading = it.getStringExtra(LocationProvider.KEY_HEADING)
+                    val headingCalc = it.getStringExtra(LocationProvider.KEY_HEADING_CALC)
+                    val speed = it.getStringExtra(LocationProvider.KEY_SPEED)
+                    val accuracy = it.getStringExtra(LocationProvider.KEY_ACCURACY)
+                    val providerSource = it.getStringExtra(LocationProvider.KEY_PROVIDER_SOURCE)
+                    val distanceCurrentRun = it.getStringExtra(LocationProvider.KEY_DISTANCE)
+                    val altitude = intent.getStringExtra(LocationProvider.KEY_ALTITUDE)
+                    val location =
+                        intent.getParcelableExtra<Location>(LocationProvider.KEY_LOCATION)
 
                     viewModel.updateUI(
                         speed,
@@ -195,13 +244,15 @@ class MainFragment : Fragment() {
                         providerSource
                     )
                     if (trackingIsRunning) {
-                        viewModel.update(distanceCurrentRun, true)
+                        viewModel.update(distanceCurrentRun, getTimeElapsed)
                         viewModel.addToList(location)
                     }
                     //locationList.add(location)
                 }
             }
         }
+        val filter = IntentFilter(LocationProvider.BR_NEW_LOCATION)
+        context!!.registerReceiver(locationBroadcastReceiver, filter)
     }
 
 }

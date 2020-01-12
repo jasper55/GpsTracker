@@ -12,8 +12,7 @@ import wagner.jasper.gpstracker.services.LocationProvider
 import wagner.jasper.gpstracker.utils.GpxFile
 import java.io.File
 import wagner.jasper.gpstracker.R
-import wagner.jasper.gpstracker.services.LocationProvider.Companion.VALUE_MISSING
-import wagner.jasper.gpstracker.utils.Utils
+import wagner.jasper.gpstracker.utils.Utils.getDate
 
 
 class MainViewModel(
@@ -57,9 +56,6 @@ class MainViewModel(
     val providerSource: LiveData<String>
         get() = _providerSource
 
-    private var startTime: Long? = null
-
-
 
     fun enableGPS(context: Activity) {
         context.startService(Intent(context, LocationProvider::class.java))
@@ -80,12 +76,34 @@ class MainViewModel(
         _providerSource.value = providerSource
     }
 
+    fun getLastFileNumber(directory: File): Int {
+        val files = directory.listFiles()
+        var lastFileNameNumber = 0
+        if (files != null) {
+            Log.i(TAG,"$files")
+            for (file in files) {
+                Log.i(TAG,"$file")
+                if (file != null) {
+                    val filename = file.name
+                    if (filename.startsWith("${getDate()}")){
+                    var number = filename.substringAfter("${getDate()}_")
+                        .substringBefore(".gpx")
+                    //lastFileNameNumber = number.toInt()
+                    Log.i(TAG,"$filename")
+                    Log.i(TAG,"$number")
+                    lastFileNameNumber = number.toInt()
+                    }
+                }
+            }
+        }
+        return lastFileNameNumber
+    }
+
     fun addToList(location: Location){
         if(_locationList.value!!.isNullOrEmpty()){
             _locationList.value = ArrayList()
         }
         _locationList.value!!.add(location)
-        Log.i("Location Debugging", "Location saved to list")
     }
 
     fun startTracking() {
@@ -112,26 +130,9 @@ class MainViewModel(
         }
     }
 
-    fun setStartTime() {
-        startTime = System.currentTimeMillis()
-    }
-
-    private val getTimeElapsed: String
-        get() {
-            var time = LocationProvider.VALUE_MISSING
-            val currentTime = System.currentTimeMillis()
-            startTime?.let {
-                val diff = Utils.round(((currentTime - it) / 1000.0), 1)
-                time = "$diff s"
-            }
-            return time
-        }
-
-    fun update(distanceCurrentRun: String?, updateElapsedTime: Boolean) {
+    fun update(distanceCurrentRun: String?, timeElapsed: String) {
         _distanceCurrentRun.value = distanceCurrentRun
-        if(updateElapsedTime)
-        _elapsedTimeCurrentRun.value = getTimeElapsed
-        else _elapsedTimeCurrentRun.value = VALUE_MISSING
+        _elapsedTimeCurrentRun.value = timeElapsed
     }
 
     companion object {

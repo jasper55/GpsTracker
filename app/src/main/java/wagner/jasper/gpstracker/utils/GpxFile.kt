@@ -25,12 +25,12 @@ class GpxFile(val context: Context) {
      * @param n name for the file
      * @param points List of locations to be written to gpx format
      */
-    fun createFile(file: File, name: String, time: String, points: ArrayList<Location>) {
+    fun createFile(file: File, author: String, time: String, points: ArrayList<Location>) {
         val header =
             "<gpx creator=\"GPS Tracker\" version=\"1.1\" xmlns=\"http://www.topografix.com/GPX/1/1\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"  xsi:schemaLocation=\"http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd\">\n"
         val metadata =
             " <metadata>\n" + "   <time>$time</time>" + "\n  </metadata>"
-        val name = " <trk>\n  <name>$name</name>\n  <trkseg>\n"
+        val author = " <trk>\n  <author>$author</author>\n  <trkseg>\n"
 
         var segments = ""
         val df = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
@@ -81,7 +81,7 @@ class GpxFile(val context: Context) {
 
             writer.append(header)
             writer.append(metadata)
-            writer.append(name)
+            writer.append(author)
             writer.append(segments)
             writer.append(footer)
             val fileEncoding = writer.encoding
