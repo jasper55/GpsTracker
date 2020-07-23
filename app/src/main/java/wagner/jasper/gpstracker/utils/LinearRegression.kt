@@ -1,3 +1,4 @@
+/*
 package wagner.jasper.gpstracker.utils
 
 import android.os.Build
@@ -65,4 +66,4 @@ object LinearRegression {
 
         return slope!! * predictForDependentVariable + intercept!!
     }
-}
+}*/

@@ -47,7 +47,7 @@ class GpxFile(val context: Context) {
                             "    <accuracy>" + points[i].accuracy + "</accuracy>\n" +
                             "    <bearing>" + points[i].bearing + "</bearing>\n" +
                             "    <speed>" + points[i].speed + "</speed>\n" +
-                            "    <timeElapsed>" + points[i].elapsedRealtimeNanos + "</timeElapsed>\n" +
+                            "    <time_elapsed>" + points[i].elapsedRealtimeNanos + "</time_elapsed>\n" +
                             "    <provider>" + points[i].provider + "</provider>\n" +
                             "    <distance>" + 0 + "</distance>\n" +
                             "    <elevation>" + points[i].altitude + "</elevation>\n" +
@@ -60,7 +60,7 @@ class GpxFile(val context: Context) {
                             "    <acc>" + points[i].accuracy + "</acc>\n" +
                             "    <bear>" + points[i].bearing + "</bear>\n" +
                             "    <speed>" + points[i].speed + "</speed>\n" +
-                            "    <timeElapsed>" + points[i].elapsedRealtimeNanos + "</timeElapsed>\n" +
+                            "    <time_elapsed>" + points[i].elapsedRealtimeNanos + "</time_elapsed>\n" +
                             "    <provider>" + points[i].provider + "</provider>\n" +
                             "    <distance>" + points[i].distanceTo(points[i - 1]) + "</distance>\n" +
                             "    <ele>" + points[i].altitude + "</ele>\n" +
