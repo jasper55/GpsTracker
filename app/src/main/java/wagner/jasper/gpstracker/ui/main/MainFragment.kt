@@ -66,6 +66,9 @@ class MainFragment : Fragment() {
         viewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
         fileNameNumber = viewModel.getLastFileNumber(context!!.filesDir)
         initBroadcastReceiver()
+
+        LocalBroadcastManager.getInstance(activity!!.applicationContext)
+            .registerReceiver(locationBroadcastReceiver, IntentFilter(LocationProvider.BR_NEW_LOCATION))
         observeLiveDataChanges()
         customToast = Toast(context)
     }
@@ -99,17 +102,19 @@ class MainFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        LocalBroadcastManager.getInstance(activity!!.applicationContext)
-            .registerReceiver(
-                locationBroadcastReceiver,
-                IntentFilter(LocationProvider.BR_NEW_LOCATION)
-            )
+//        LocalBroadcastManager.getInstance(activity!!.applicationContext)
+//            .registerReceiver(
+//                locationBroadcastReceiver,
+//                IntentFilter(LocationProvider.BR_NEW_LOCATION)
+//            )
         observeLiveDataChanges()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        context!!.unregisterReceiver(locationBroadcastReceiver)
+        //context!!.unregisterReceiver(locationBroadcastReceiver)
+        LocalBroadcastManager.getInstance(activity!!.applicationContext)
+            .unregisterReceiver(locationBroadcastReceiver)
     }
 
     private fun initializeView(view: View) {
@@ -251,8 +256,8 @@ class MainFragment : Fragment() {
                 }
             }
         }
-        val filter = IntentFilter(LocationProvider.BR_NEW_LOCATION)
-        context!!.registerReceiver(locationBroadcastReceiver, filter)
+//        val filter = IntentFilter(LocationProvider.BR_NEW_LOCATION)
+//        context!!.registerReceiver(locationBroadcastReceiver, filter)
     }
 
 }

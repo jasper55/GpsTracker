@@ -7,7 +7,7 @@ object Utils {
 
     fun round(value: Double, places: Int): Double {
         var value = value
-        if (places < 0) throw IllegalArgumentException()
+        require(places >= 0)
 
         val factor = Math.pow(10.0, places.toDouble()).toLong()
         value *= factor
@@ -16,23 +16,23 @@ object Utils {
     }
 
     fun getDate(): String {
-        val calender = Calendar.getInstance()
-
-        val day = calender.get(Calendar.DAY_OF_MONTH)
-        val month = calender.get(Calendar.MONTH)
-        val year = calender.get(Calendar.YEAR)
-        return "$day-$month-$year"
+        Calendar.getInstance(Locale.GERMAN).apply {
+            val day = get(Calendar.DAY_OF_MONTH)
+            val month = get(Calendar.MONTH) + 1
+            val year = get(Calendar.YEAR)
+            return "$day-$month-$year"
+        }
     }
 
     fun getTime(): String {
-        val calender = Calendar.getInstance()
-
-        val day = calender.get(Calendar.DAY_OF_MONTH)
-        val month = calender.get(Calendar.MONTH)
-        val year = calender.get(Calendar.YEAR)
-        val hour = calender.get(Calendar.HOUR)
-        val minute = calender.get(Calendar.MINUTE)
-        return "$day-$month-$year $hour:$minute"
+        Calendar.getInstance(Locale.GERMAN).apply {
+            val day = get(Calendar.DAY_OF_MONTH)
+            val month = get(Calendar.MONTH) + 1
+            val year = get(Calendar.YEAR)
+            val hour = get(Calendar.HOUR)
+            val minute = get(Calendar.MINUTE)
+            return "$day-$month-$year $hour:$minute"
+        }
     }
 
     val VMG_FRAGMENT_TAG = 1
