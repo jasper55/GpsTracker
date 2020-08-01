@@ -130,9 +130,9 @@ class MainViewModel(
         }
     }
 
-    fun update(distanceCurrentRun: String?, timeElapsed: String) {
+    fun update(distanceCurrentRun: String?, time_elapsed: String) {
         _distanceCurrentRun.value = distanceCurrentRun
-        _elapsedTimeCurrentRun.value = timeElapsed
+        _elapsedTimeCurrentRun.value = time_elapsed
     }
 
     companion object {
