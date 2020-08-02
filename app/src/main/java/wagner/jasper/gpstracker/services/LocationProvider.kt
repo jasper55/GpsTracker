@@ -80,7 +80,7 @@ class LocationProvider : Service(),
 
     override fun onCreate() {
         super.onCreate()
-
+        Log.d(TAG, "GoogleApi Client OnCreate")
         buildGoogleApiClient()
         //showNotificationAndStartForegroundService()
         mLocationCallback = LocationCallback()
@@ -131,13 +131,7 @@ class LocationProvider : Service(),
      * Method used for the request new location using Google FusedLocation Api
      */
     private fun requestLocationUpdate() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED &&
-            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            return
-        }
+
         mFusedLocationProviderClient.lastLocation?.addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 prevLocation = newLocation

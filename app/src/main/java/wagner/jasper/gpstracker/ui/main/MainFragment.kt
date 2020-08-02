@@ -7,6 +7,7 @@ import android.content.IntentFilter
 import android.location.Location
 import androidx.lifecycle.ViewModelProviders
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -18,6 +19,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Observer
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.shawnlin.numberpicker.NumberPicker
+import kotlinx.android.synthetic.main.custom_toast_layout.view.*
 import wagner.jasper.gpstracker.extensions.show
 import wagner.jasper.gpstracker.R
 import wagner.jasper.gpstracker.services.LocationProvider
@@ -51,6 +54,8 @@ class MainFragment : Fragment() {
     private var trackingIsRunning = false
     private var gpsIsEnabled = false
     private lateinit var customToast: Toast
+
+    private lateinit var typePicker: NumberPicker
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -128,6 +133,8 @@ class MainFragment : Fragment() {
         tvElapsedTimeCurrentRun = view.findViewById(R.id.tvElapsedTimeCurrentRun)
         tvDistanceCurrentRun = view.findViewById(R.id.tvDistanceCurrentRun)
 
+        initPicker(view)
+
         switchTracking = view.findViewById(R.id.switchTracking)
         switchProvider = view.findViewById(R.id.switchProvider)
         switchProvider!!.setOnCheckedChangeListener { buttonView, isChecked ->
@@ -187,6 +194,41 @@ class MainFragment : Fragment() {
                 )
             }
         }
+    }
+
+    private fun initPicker(view: View) {
+        typePicker = view.findViewById(R.id.location_type_picker)
+
+
+        typePicker.textSize = 25f
+        typePicker.selectedTextSize = 35f
+
+        val data = resources.getStringArray(R.array.location_type_array)
+        typePicker.minValue = 1
+        typePicker.maxValue = data.size
+        typePicker.displayedValues = data
+        typePicker.value = 2
+
+        typePicker.isFadingEdgeEnabled = true
+
+        typePicker.isScrollerEnabled = true
+        typePicker.wrapSelectorWheel = false
+        typePicker.dividerPadding = 10
+
+        typePicker.setOnValueChangedListener(object : NumberPicker.OnValueChangeListener {
+            override fun onValueChange(
+                p0: NumberPicker?,
+                oldVal: Int,
+                newVal: Int
+            ) {
+                val type = typePicker.displayedValues[newVal-1]
+                Log.d("Location", "type: $type")
+                val sharedPreference =  context!!.getSharedPreferences("PREFERENCE_NAME",Context.MODE_PRIVATE)
+                sharedPreference.edit().putString("PROVIDER",type).apply()
+                viewModel.setTypeSelected(newVal - 1)
+            }
+        })
+
     }
 
     private fun showSaveDialog() {

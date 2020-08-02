@@ -12,6 +12,7 @@ import wagner.jasper.gpstracker.services.LocationProvider
 import wagner.jasper.gpstracker.utils.GpxFile
 import java.io.File
 import wagner.jasper.gpstracker.R
+import wagner.jasper.gpstracker.services.LocationApi
 import wagner.jasper.gpstracker.utils.Utils.getDate
 
 
@@ -56,13 +57,18 @@ class MainViewModel(
     val providerSource: LiveData<String>
         get() = _providerSource
 
+    private val _typeSelection = MutableLiveData<Int>()
+    val typeSelection: LiveData<Int>
+        get() = _typeSelection
+
 
     fun enableGPS(context: Activity) {
-        context.startService(Intent(context, LocationProvider::class.java))
+        Log.d("Viewmodel", " gps enabled ")
+        context.startService(Intent(context, LocationApi::class.java))
     }
 
     fun disableGPS(context: Activity) {
-        context.stopService(Intent(context, LocationProvider::class.java))
+        context.stopService(Intent(context, LocationApi::class.java))
     }
 
     fun updateUI(speed: String?, heading: String?, headingCalc: String?, altitude: String?,
@@ -135,6 +141,9 @@ class MainViewModel(
         _elapsedTimeCurrentRun.value = time_elapsed
     }
 
+    fun setTypeSelected(timerLengthSelection: Int) {
+        _typeSelection.value = timerLengthSelection
+    }
     companion object {
         private val TAG = MainViewModel::class.java.name
     }

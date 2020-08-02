@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <!--These two arrays list cooking time intervals in minutes and the text representing 
+	that interval. They need to be in sync when anything added, removed or modified   -->
+	
+	<!--Text values of cooking time intervals -->
+    <string-array name="location_type_array">
+        <item>GPS</item>
+        <item>NETWORK</item>
+    </string-array>
+    <!--Cooking time intervals in seconds -->
+    <integer-array name="egg_type_factor">
+        <item>0</item>
+        <item>240</item>
+        <item>300</item>
+        <item>359</item>
+        <item>492</item>
+    </integer-array>
+
+    <string-array name="egg_size_array">
+        <item>S</item>
+        <item>M</item>
+        <item>L</item>
+        <item>XXXXL</item>
+    </string-array>
+    <!--size factor * 1000 (because of int) -->
+    <integer-array name="egg_size_factor">
+        <item>1000</item>
+        <item>1106</item>
+        <item>1229</item>
+        <item>1371</item>
+    </integer-array>
+</resources>

@@ -55,7 +55,8 @@ class MainActivity : AppCompatActivity() {
                 this,
                 arrayOf(
                     Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.INTERNET
                 ), 1
             )
         }
