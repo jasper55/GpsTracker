@@ -159,9 +159,9 @@ class LocationProvider : Service(),
         } else {
             prevLocation = newLocation
             newLocation = lastLocation
+            previousTime = currentTime
+            currentTime = System.currentTimeMillis()
             if (prevLocation?.latitude != newLocation?.latitude && prevLocation?.longitude != newLocation?.longitude) {
-                //previousTime = currentTime
-                //currentTime = System.currentTimeMillis()
                 sendBroadcastIntent()
                 Log.i("Location Debugging", "Location sent")
             }
@@ -227,6 +227,8 @@ private val getGPSAccuracy: String
 private val getSpeed: String
     get() {
         var speedString = VALUE_MISSING
+        Log.d("NewLocation", newLocation.toString())
+        Log.d("PrevLocation", prevLocation.toString())
         prevLocation?.let {
             val meters = prevLocation?.distanceTo(newLocation)
             if (previousTime != null) {
@@ -294,6 +296,8 @@ val providerSource: String
 val distanceSequment: String
     get() {
         var distance = VALUE_MISSING
+        Log.d("NewLocation", newLocation.toString())
+        Log.d("FirstLocation", firstLocation.toString())
         newLocation?.let { new ->
             firstLocation?.let { first ->
                 distance = "${round(new.distanceTo(first).toDouble(), 2)} m"

@@ -102,7 +102,7 @@ class LocationApi : Service() {
         applicationContext.registerReceiver(startTrackingReceiver, filter)
     }
 
-    fun startLocationUpdates(providerChosen: String) {
+    private fun startLocationUpdates(providerChosen: String) {
         var provider = ""
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
             != PackageManager.PERMISSION_GRANTED &&
@@ -118,7 +118,7 @@ class LocationApi : Service() {
         }
         Log.d("Provider",provider)
 
-        
+
         mLocationManager.requestLocationUpdates(provider, 100, 0f, mLocationListener)
 
     }
@@ -151,14 +151,14 @@ class LocationApi : Service() {
     private fun newLocationReceived(lastLocation: Location?) {
         if (newLocation == null){
             newLocation = lastLocation
-            //sendBroadcastIntent()
+            firstLocation = lastLocation
             Log.i("Location Debugging", "first Location sent")
         } else {
             prevLocation = newLocation
             newLocation = lastLocation
             if (prevLocation?.latitude != newLocation?.latitude && prevLocation?.longitude != newLocation?.longitude) {
-                //previousTime = currentTime
-                //currentTime = System.currentTimeMillis()
+                previousTime = currentTime
+                currentTime = System.currentTimeMillis()
                 sendBroadcastIntent()
                 Log.i("Location Debugging", "Location sent")
             }
@@ -248,6 +248,8 @@ class LocationApi : Service() {
 
     val distanceSequment: String
         get() {
+            Log.d("NewLocation", newLocation.toString())
+            Log.d("FirstLocation", firstLocation.toString())
             var distance = LocationProvider.VALUE_MISSING
             newLocation?.let { new ->
                 firstLocation?.let { first ->
