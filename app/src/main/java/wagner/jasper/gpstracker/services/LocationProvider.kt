@@ -372,6 +372,7 @@ companion object {
     const val KEY_ACCURACY = "KEY_ACCURACY"
     const val KEY_ALTITUDE = "KEY_ALTITUDE"
     const val KEY_LOCATION = "KEY_LOCATION"
+    const val KEY_SATELLITES ="KEY_SATELLITES"
 
     const val VALUE_MISSING = "--"
 }

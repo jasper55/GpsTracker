@@ -283,6 +283,8 @@ class MainFragment : Fragment() {
                     val location =
                         intent.getParcelableExtra<Location>(LocationProvider.KEY_LOCATION)
 
+                    val satellites = intent.getStringExtra(LocationProvider.KEY_SATELLITES)
+
                     viewModel.updateUI(
                         speed,
                         heading,
@@ -292,7 +294,7 @@ class MainFragment : Fragment() {
                         providerSource
                     )
                     if (trackingIsRunning) {
-                        viewModel.update(distanceCurrentRun, getTimeElapsed)
+                        viewModel.update(satellites, getTimeElapsed)
                         viewModel.addToList(location)
                     }
                     //locationList.add(location)

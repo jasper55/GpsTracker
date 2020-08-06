@@ -29,6 +29,7 @@ class LocationApi : Service() {
     private var newLocation: Location? = null
     private var prevLocation: Location? = null
     private var locationProviderSource = "GPS"
+    private var numberOfSatellites: Int? = null
 
     private val mBinder = ServiceBinder()
 
@@ -50,6 +51,8 @@ class LocationApi : Service() {
 
         override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
             Log.d("LOCATION", " Status Changed ")
+            checkSatelittes()
+
         }
 
         override fun onProviderEnabled(provider: String?) {
@@ -60,6 +63,17 @@ class LocationApi : Service() {
             val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
             startActivity(intent)
         }
+    }
+
+    private fun checkSatelittes() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+
     }
 
 
@@ -142,16 +156,37 @@ class LocationApi : Service() {
         intent.putExtra(LocationProvider.KEY_LOCATION, newLocation)
         intent.putExtra(LocationProvider.KEY_DISTANCE, distanceSequment)
         intent.putExtra(LocationProvider.KEY_PROVIDER_SOURCE, providerSource)
+        intent.putExtra(LocationProvider.KEY_SATELLITES, numberOfSatellites.toString())
         //intent.putExtra(LocationProvider.KEY_CURRENT_TIME, currentTime)
         localBroadcastManager.sendBroadcast(intent)
         Log.i("Location Debugging", "sendBroadcast invoked")
     }
 
 
+    private fun getSatellitesAmount() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED &&
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+        var i = 0
+        mLocationManager.getGpsStatus(null).satellites.forEach { satellite ->
+            Log.d("Location Satellite: ",satellite.toString())
+            i += 1
+        }
+        numberOfSatellites = i
+    }
     private fun newLocationReceived(lastLocation: Location?) {
+        if(lastLocation!!.isFromMockProvider) return
+
+        if (!lastLocation.hasSpeed()) return
+
         if (newLocation == null){
             newLocation = lastLocation
             firstLocation = lastLocation
+
             Log.i("Location Debugging", "first Location sent")
         } else {
             prevLocation = newLocation
